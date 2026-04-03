@@ -59,13 +59,13 @@ export function TrustedBySection() {
   return (
     <section className="relative py-16 overflow-hidden">
       {/* Sparkle background glow */}
-      <div className="relative h-[280px] w-full overflow-hidden [mask-image:radial-gradient(50%_50%,white,transparent)]">
+      <div className="relative h-[280px] w-full overflow-hidden [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,white,transparent)]">
         <div className="absolute inset-0 before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_bottom_center,hsl(var(--primary)/.25),transparent_65%)]" />
         <div className="absolute -left-1/2 top-1/2 aspect-[1/0.7] z-10 w-[200%] rounded-[100%] border-t border-border/60 bg-background" />
         <Sparkles
           density={800}
           speed={0.6}
-          className="absolute inset-x-0 bottom-0 h-full w-full [mask-image:radial-gradient(50%_50%,white,transparent_85%)]"
+          className="absolute inset-x-0 bottom-0 h-full w-full [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,white,transparent_85%)]"
           color="hsl(var(--primary))"
           opacity={0.5}
         />
