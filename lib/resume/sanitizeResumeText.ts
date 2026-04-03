@@ -1,0 +1,56 @@
+import type { OptimizedResumeData } from "@/lib/resume/types";
+
+/** Remove HTML/markup so resume fields render as plain text in React (no escaped tags). */
+export function stripHtmlFromText(input: string): string {
+  if (!input || typeof input !== "string") return input;
+  let s = input
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n")
+    .replace(/<\/div>/gi, "\n")
+    .replace(/<\/li>/gi, "\n")
+    .replace(/<[^>]+>/g, "");
+  s = s
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/g, "'");
+  return s.replace(/\n{3,}/g, "\n\n").replace(/[ \t]+\n/g, "\n").trim();
+}
+
+export function sanitizeOptimizedResumeData(data: OptimizedResumeData): OptimizedResumeData {
+  return {
+    ...data,
+    full_name: stripHtmlFromText(data.full_name),
+    headline: stripHtmlFromText(data.headline),
+    email: stripHtmlFromText(data.email),
+    phone: stripHtmlFromText(data.phone),
+    location: stripHtmlFromText(data.location),
+    linkedin: stripHtmlFromText(data.linkedin),
+    summary: stripHtmlFromText(data.summary),
+    skills: data.skills.map(stripHtmlFromText),
+    experience: data.experience.map((ex) => ({
+      ...ex,
+      title: stripHtmlFromText(ex.title),
+      company: stripHtmlFromText(ex.company),
+      location: stripHtmlFromText(ex.location),
+      dates: stripHtmlFromText(ex.dates),
+      bullets: ex.bullets.map(stripHtmlFromText),
+    })),
+    education: data.education.map((ed) => ({
+      ...ed,
+      institution: stripHtmlFromText(ed.institution),
+      credential: stripHtmlFromText(ed.credential),
+      dates: stripHtmlFromText(ed.dates),
+      details: ed.details.map(stripHtmlFromText),
+    })),
+    certifications: data.certifications.map(stripHtmlFromText),
+    projects: data.projects.map((p) => ({
+      ...p,
+      name: stripHtmlFromText(p.name),
+      description: stripHtmlFromText(p.description),
+      bullets: p.bullets.map(stripHtmlFromText),
+    })),
+  };
+}

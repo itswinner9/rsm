@@ -1,0 +1,322 @@
+'use client';
+
+import React from 'react'
+import Link from 'next/link'
+import { ArrowRight, ChevronRight } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { AnimatedGroup } from '@/components/ui/animated-group'
+import { createClient } from '@/lib/supabase/client'
+import { SiteHeader } from '@/components/layout/site-header'
+
+const transitionVariants = {
+    item: {
+        hidden: {
+            opacity: 0,
+            filter: 'blur(12px)',
+            y: 12,
+        },
+        visible: {
+            opacity: 1,
+            filter: 'blur(0px)',
+            y: 0,
+            transition: {
+                type: 'spring',
+                bounce: 0.3,
+                duration: 1.5,
+            },
+        },
+    },
+}
+
+export function HeroSection() {
+    const supabase = createClient()
+    const [isLoggedIn, setIsLoggedIn] = React.useState(false)
+
+    React.useEffect(() => {
+        supabase.auth.getSession().then(({ data }) => {
+            setIsLoggedIn(!!data.session)
+        })
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+            setIsLoggedIn(!!session)
+        })
+        return () => subscription.unsubscribe()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
+    return (
+        <>
+            <SiteHeader />
+            <div className="overflow-hidden">
+                <div
+                    aria-hidden
+                    className="z-[2] absolute inset-0 pointer-events-none isolate opacity-50 contain-strict hidden lg:block">
+                    <div className="w-[35rem] h-[80rem] -translate-y-[350px] absolute left-0 top-0 -rotate-45 rounded-full bg-[radial-gradient(68.54%_68.72%_at_55.02%_31.46%,hsla(0,0%,85%,.08)_0,hsla(0,0%,55%,.02)_50%,hsla(0,0%,45%,0)_80%)]" />
+                    <div className="h-[80rem] absolute left-0 top-0 w-56 -rotate-45 rounded-full bg-[radial-gradient(50%_50%_at_50%_50%,hsla(0,0%,85%,.06)_0,hsla(0,0%,45%,.02)_80%,transparent_100%)] [translate:5%_-50%]" />
+                    <div className="h-[80rem] -translate-y-[350px] absolute left-0 top-0 w-56 -rotate-45 bg-[radial-gradient(50%_50%_at_50%_50%,hsla(0,0%,85%,.04)_0,hsla(0,0%,45%,.02)_80%,transparent_100%)]" />
+                </div>
+                <section>
+                    <div className="relative pt-24 md:pt-36">
+                        <AnimatedGroup
+                            variants={{
+                                container: {
+                                    visible: {
+                                        transition: {
+                                            delayChildren: 1,
+                                        },
+                                    },
+                                },
+                                item: {
+                                    hidden: {
+                                        opacity: 0,
+                                        y: 20,
+                                    },
+                                    visible: {
+                                        opacity: 1,
+                                        y: 0,
+                                        transition: {
+                                            type: 'spring',
+                                            bounce: 0.3,
+                                            duration: 2,
+                                        },
+                                    },
+                                },
+                            }}
+                            className="absolute inset-0 -z-20">
+                            <img
+                                src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=3276&q=75"
+                                alt="background"
+                                className="absolute inset-x-0 top-56 -z-20 hidden lg:top-32 lg:block opacity-20"
+                                width="3276"
+                                height="4095"
+                            />
+                        </AnimatedGroup>
+                        <div aria-hidden className="absolute inset-0 -z-10 size-full [background:radial-gradient(125%_125%_at_50%_100%,transparent_0%,var(--background)_75%)]" />
+                        <div className="mx-auto max-w-7xl px-6">
+                            <div className="text-center sm:mx-auto lg:mr-auto lg:mt-0">
+                                <AnimatedGroup variants={transitionVariants}>
+                                    <Link
+                                        href={isLoggedIn ? '/builder' : '/auth/signup'}
+                                        className="hover:bg-background bg-muted group mx-auto flex w-fit items-center gap-4 rounded-full border border-border p-1 pl-4 shadow-md shadow-black/5 transition-all duration-300">
+                                        <span className="text-foreground text-sm">
+                                            {isLoggedIn
+                                                ? 'Welcome back — open builder'
+                                                : 'resumify.cc · Try your first optimization free'}
+                                        </span>
+                                        <span className="block h-4 w-0.5 border-l border-border bg-background" />
+
+                                        <div className="bg-background group-hover:bg-muted size-6 overflow-hidden rounded-full duration-500">
+                                            <div className="flex w-12 -translate-x-1/2 duration-500 ease-in-out group-hover:translate-x-0">
+                                                <span className="flex size-6">
+                                                    <ArrowRight className="m-auto size-3" />
+                                                </span>
+                                                <span className="flex size-6">
+                                                    <ArrowRight className="m-auto size-3" />
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </Link>
+
+                                    <h1 className="mt-8 max-w-4xl mx-auto text-balance text-6xl md:text-7xl lg:mt-16 xl:text-[5.25rem]">
+                                        Fit your resume to every job—without starting over
+                                    </h1>
+                                    <p className="mx-auto mt-8 max-w-2xl text-balance text-lg">
+                                        Resumify aligns your real experience to each posting—keyword match scores, AI-tuned wording, and three ATS-ready layouts. Export PDF or DOCX and apply with confidence.
+                                    </p>
+                                </AnimatedGroup>
+
+                                <AnimatedGroup
+                                    variants={{
+                                        container: {
+                                            visible: {
+                                                transition: {
+                                                    staggerChildren: 0.05,
+                                                    delayChildren: 0.75,
+                                                },
+                                            },
+                                        },
+                                        ...transitionVariants,
+                                    }}
+                                    className="mt-12 flex flex-col items-center justify-center gap-2 md:flex-row">
+                                    <div
+                                        key={1}
+                                        className="bg-foreground/10 rounded-[14px] border p-0.5">
+                                        <Button
+                                            asChild
+                                            size="lg"
+                                            className="rounded-xl px-5 text-base">
+                                            <Link href={isLoggedIn ? '/builder' : '/auth/signup'}>
+                                                <span className="text-nowrap">{isLoggedIn ? 'Open builder' : 'Build My Resume Free'}</span>
+                                            </Link>
+                                        </Button>
+                                    </div>
+                                    <Button
+                                        key={2}
+                                        asChild
+                                        size="lg"
+                                        variant="ghost"
+                                        className="h-10.5 rounded-xl px-5">
+                                        <Link href="/pricing">
+                                            <span className="text-nowrap">See plans</span>
+                                        </Link>
+                                    </Button>
+                                </AnimatedGroup>
+                            </div>
+                        </div>
+
+                        <AnimatedGroup
+                            variants={{
+                                container: {
+                                    visible: {
+                                        transition: {
+                                            staggerChildren: 0.05,
+                                            delayChildren: 0.75,
+                                        },
+                                    },
+                                },
+                                ...transitionVariants,
+                            }}>
+                            <div className="relative -mr-56 mt-8 overflow-hidden px-2 sm:mr-0 sm:mt-12 md:mt-20">
+                                <div
+                                    aria-hidden
+                                    className="bg-gradient-to-b to-background absolute inset-0 z-10 from-transparent from-35%"
+                                />
+                                <div className="ring-background bg-background relative mx-auto max-w-6xl overflow-hidden rounded-2xl border border-border shadow-lg shadow-black/[0.08] ring-1 ring-border/60">
+                                    <AppMockup />
+                                </div>
+                            </div>
+                        </AnimatedGroup>
+                    </div>
+                </section>
+                <section className="bg-background pb-16 pt-16 md:pb-32">
+                    <div className="group relative m-auto max-w-5xl px-6">
+                        <p className="text-center text-muted-foreground text-sm mb-10 tracking-wide uppercase text-xs font-medium">
+                            Trusted by job seekers targeting top Canadian employers
+                        </p>
+                        <div className="absolute inset-0 z-10 flex scale-95 items-center justify-center opacity-0 duration-500 group-hover:scale-100 group-hover:opacity-100">
+                            <Link
+                                href={isLoggedIn ? '/builder' : '/auth/signup'}
+                                className="block text-sm duration-150 hover:opacity-75">
+                                <span>{isLoggedIn ? 'Continue to builder' : 'Start Optimizing Your Resume'}</span>
+                                <ChevronRight className="ml-1 inline-block size-3" />
+                            </Link>
+                        </div>
+                        <div className="group-hover:blur-xs mx-auto grid max-w-3xl grid-cols-4 gap-x-10 gap-y-10 transition-all duration-500 group-hover:opacity-50 sm:gap-x-14 sm:gap-y-12">
+                            {/* Tech */}
+                            <div className="flex items-center justify-center">
+                                <span className="text-muted-foreground/60 font-bold text-sm tracking-tight">Shopify</span>
+                            </div>
+                            <div className="flex items-center justify-center">
+                                <span className="text-muted-foreground/60 font-bold text-sm tracking-tight">Hootsuite</span>
+                            </div>
+                            <div className="flex items-center justify-center">
+                                <span className="text-muted-foreground/60 font-bold text-sm tracking-tight">Cohere</span>
+                            </div>
+                            <div className="flex items-center justify-center">
+                                <span className="text-muted-foreground/60 font-bold text-sm tracking-tight">Wealthsimple</span>
+                            </div>
+                            {/* Construction */}
+                            <div className="flex items-center justify-center">
+                                <span className="text-muted-foreground/60 font-bold text-sm tracking-tight">PCL</span>
+                            </div>
+                            <div className="flex items-center justify-center">
+                                <span className="text-muted-foreground/60 font-bold text-sm tracking-tight">EllisDon</span>
+                            </div>
+                            <div className="flex items-center justify-center">
+                                <span className="text-muted-foreground/60 font-bold text-sm tracking-tight">Stantec</span>
+                            </div>
+                            <div className="flex items-center justify-center">
+                                <span className="text-muted-foreground/60 font-bold text-sm tracking-tight">WSP</span>
+                            </div>
+                            {/* Mixed */}
+                            <div className="flex items-center justify-center">
+                                <span className="text-muted-foreground/60 font-bold text-sm tracking-tight">AECOM</span>
+                            </div>
+                            <div className="flex items-center justify-center">
+                                <span className="text-muted-foreground/60 font-bold text-sm tracking-tight">SNC-Lavalin</span>
+                            </div>
+                            <div className="flex items-center justify-center">
+                                <span className="text-muted-foreground/60 font-bold text-sm tracking-tight">FreshBooks</span>
+                            </div>
+                            <div className="flex items-center justify-center">
+                                <span className="text-muted-foreground/60 font-bold text-sm tracking-tight">Cenovus</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </>
+    )
+}
+
+const AppMockup = () => (
+    <div className="bg-[#f8f9fb] rounded-2xl p-6 min-h-[340px]">
+        {/* Top bar */}
+        <div className="flex items-center gap-2 mb-6">
+            <div className="flex gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-red-400/70" />
+                <div className="w-3 h-3 rounded-full bg-yellow-400/70" />
+                <div className="w-3 h-3 rounded-full bg-green-400/70" />
+            </div>
+            <div className="flex-1 bg-white border border-gray-200 rounded-full h-6 mx-4 flex items-center px-3">
+                <span className="text-gray-400 text-xs">rsmbuilder.com/builder</span>
+            </div>
+        </div>
+        {/* App layout */}
+        <div className="grid grid-cols-5 gap-4">
+            {/* Left panel */}
+            <div className="col-span-2 space-y-3">
+                <div className="border border-dashed border-primary/30 rounded-xl p-4 bg-primary/5 text-center">
+                    <div className="w-8 h-8 bg-primary/10 rounded-lg mx-auto mb-2 flex items-center justify-center">
+                        <div className="w-4 h-4 border-2 border-primary/40 rounded" />
+                    </div>
+                    <div className="h-2 bg-primary/20 rounded-full w-24 mx-auto mb-1" />
+                    <div className="h-1.5 bg-gray-200 rounded-full w-16 mx-auto" />
+                </div>
+                <div className="border border-gray-200 rounded-xl p-3 bg-white">
+                    <div className="h-1.5 bg-gray-200 rounded w-20 mb-2" />
+                    <div className="space-y-1.5">
+                        {[1,0.9,0.7,1,0.8].map((w,i) => (
+                            <div key={i} className="h-1.5 bg-gray-100 rounded" style={{width:`${w*100}%`}} />
+                        ))}
+                    </div>
+                </div>
+                <div className="bg-primary rounded-xl py-2.5 text-center">
+                    <div className="h-2 bg-white/30 rounded w-28 mx-auto" />
+                </div>
+            </div>
+            {/* Right panel */}
+            <div className="col-span-3 space-y-3">
+                <div className="flex gap-2">
+                    {[
+                        { score: '92%', w: 'w-[92%]' },
+                        { score: '88%', w: 'w-[88%]' },
+                        { score: '85%', w: 'w-[85%]' },
+                    ].map((v) => (
+                        <div key={v.score} className="flex-1 bg-white rounded-xl p-3 border border-gray-200">
+                            <div className="text-sm font-bold text-primary mb-1">{v.score}</div>
+                            <div className="h-1 bg-gray-100 rounded-full mb-2">
+                                <div className={`h-full bg-primary rounded-full ${v.w}`} />
+                            </div>
+                            <div className="h-1.5 bg-gray-100 rounded w-full mb-1" />
+                            <div className="h-1.5 bg-gray-100 rounded w-3/4" />
+                        </div>
+                    ))}
+                </div>
+                <div className="bg-white rounded-xl p-3 border border-gray-200">
+                    <div className="h-1.5 bg-gray-200 rounded w-24 mb-2" />
+                    <div className="flex flex-wrap gap-1.5">
+                        {['Project Mgmt', 'AutoCAD', 'Safety', 'Agile', 'AWS'].map((kw) => (
+                            <span key={kw} className="px-2 py-0.5 bg-primary/8 border border-primary/20 rounded-full text-primary text-[10px]">{kw}</span>
+                        ))}
+                    </div>
+                </div>
+                <div className="flex items-center gap-2 bg-white rounded-xl p-2.5 border border-gray-200">
+                    <div className="h-2 bg-gray-100 rounded flex-1" />
+                    <div className="bg-primary rounded-lg px-3 py-1.5">
+                        <div className="h-1.5 bg-white/30 rounded w-16" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+)

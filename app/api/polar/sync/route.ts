@@ -1,0 +1,16 @@
+import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { syncPolarSubscriptionForUser } from "@/lib/polar/syncSubscription";
+
+/** Refresh subscription_status from Polar (e.g. right after checkout, before webhooks land). */
+export async function POST() {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ active: false, error: "Unauthorized" }, { status: 401 });
+  }
+  const active = await syncPolarSubscriptionForUser(user.id);
+  return NextResponse.json({ active });
+}

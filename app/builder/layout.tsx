@@ -1,0 +1,32 @@
+import type { Metadata } from "next";
+import { createClient } from "@/lib/supabase/server";
+import { syncPolarSubscriptionForUser } from "@/lib/polar/syncSubscription";
+import { siteDescription, openGraphDefaults } from "@/lib/site-metadata";
+
+export const metadata: Metadata = {
+  title: "Resume builder",
+  description: "Upload your resume, paste a job description, and get ATS-optimized layouts with PDF and DOCX export.",
+  openGraph: {
+    ...openGraphDefaults,
+    title: "Resume builder",
+    description: siteDescription,
+  },
+};
+
+export default async function BuilderLayout({ children }: { children: React.ReactNode }) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (user) {
+    const { data: row } = await supabase
+      .from("user_profiles")
+      .select("subscription_status")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (row?.subscription_status !== "active") {
+      await syncPolarSubscriptionForUser(user.id);
+    }
+  }
+  return <>{children}</>;
+}
