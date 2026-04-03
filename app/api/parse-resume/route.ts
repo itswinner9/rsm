@@ -54,26 +54,45 @@ async function extractPDFTextWithPdfParse(buffer: Buffer): Promise<string> {
   }
 }
 
+/** Primary path: unpdf ships a serverless PDF.js build (no filesystem worker). Best for Vercel. */
+async function extractPDFTextWithUnpdf(buffer: Buffer): Promise<string> {
+  const { extractText } = await import("unpdf");
+  const { text } = await extractText(new Uint8Array(buffer), { mergePages: true });
+  return typeof text === "string" ? text.trim() : "";
+}
+
 async function extractPDFText(buffer: Buffer): Promise<string> {
+  const failures: string[] = [];
+
+  try {
+    const t = await extractPDFTextWithUnpdf(buffer);
+    if (t.length > 0) return t;
+    failures.push("unpdf: empty text");
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    failures.push(`unpdf: ${msg}`);
+    console.error("[parse-resume] unpdf failed:", msg);
+  }
+
   try {
     return await extractPDFTextWithPdfjs(buffer);
-  } catch (primaryErr) {
-    console.error(
-      "[parse-resume] pdfjs extraction failed, trying pdf-parse:",
-      primaryErr instanceof Error ? primaryErr.message : primaryErr
-    );
-    try {
-      const text = await extractPDFTextWithPdfParse(buffer);
-      if (text.length > 0) return text;
-      throw new Error("pdf-parse returned empty text");
-    } catch (fallbackErr) {
-      console.error(
-        "[parse-resume] pdf-parse fallback failed:",
-        fallbackErr instanceof Error ? fallbackErr.message : fallbackErr
-      );
-      throw primaryErr;
-    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    failures.push(`pdfjs: ${msg}`);
+    console.error("[parse-resume] pdfjs failed:", msg);
   }
+
+  try {
+    const text = await extractPDFTextWithPdfParse(buffer);
+    if (text.length > 0) return text;
+    failures.push("pdf-parse: empty text");
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    failures.push(`pdf-parse: ${msg}`);
+    console.error("[parse-resume] pdf-parse failed:", msg);
+  }
+
+  throw new Error(failures.join(" | ") || "PDF text extraction failed");
 }
 
 export async function POST(request: NextRequest) {
@@ -120,7 +139,21 @@ export async function POST(request: NextRequest) {
     } else if (file.type === "text/plain" || file.name.endsWith(".txt")) {
       parsedText = buffer.toString("utf-8").trim();
     } else {
-      parsedText = await extractPDFText(buffer);
+      try {
+        parsedText = await extractPDFText(buffer);
+      } catch (pdfErr) {
+        console.error(
+          "[parse-resume] all PDF extractors failed:",
+          pdfErr instanceof Error ? pdfErr.message : pdfErr
+        );
+        return NextResponse.json(
+          {
+            error:
+              "Could not read text from this PDF. Export as DOCX from Word/Google Docs, re-save the PDF, or try a text-based PDF (not a scanned image).",
+          },
+          { status: 422 }
+        );
+      }
     }
 
     if (!parsedText || parsedText.length < 50) {

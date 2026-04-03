@@ -14,7 +14,7 @@ const nextConfig = {
     ],
   },
   experimental: {
-    serverComponentsExternalPackages: ["mammoth", "pdf-parse", "pdfjs-dist"],
+    serverComponentsExternalPackages: ["mammoth", "pdf-parse", "pdfjs-dist", "unpdf"],
     optimizePackageImports: ["lucide-react"],
     /** Ensure pdf.js worker exists in the serverless bundle on Vercel (see app/api/parse-resume/route.ts). */
     outputFileTracingIncludes: {
