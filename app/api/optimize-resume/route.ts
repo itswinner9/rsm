@@ -13,19 +13,26 @@ import { sanitizeOptimizedResumeData } from "@/lib/resume/sanitizeResumeText";
 import { normalizeAiOptimizePayload } from "@/lib/resume/normalizeAiOptimizePayload";
 import { jdKeywordMatchScore, flattenOptimizedResumeText } from "@/lib/resume/jdKeywordMatchScore";
 
-const openrouter = new OpenAI({
-  baseURL: "https://openrouter.ai/api/v1",
-  apiKey: process.env.OPENROUTER_API_KEY!,
-  defaultHeaders: {
-    "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
-    "X-Title": "Resumify",
-  },
-});
-
 const MODEL = "google/gemini-2.5-flash";
 
+/** Lazy init: constructing OpenAI at module load breaks `next build` when env vars are absent (e.g. Vercel build). */
+function getOpenRouterClient(): OpenAI {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) {
+    throw new Error("OPENROUTER_API_KEY is not configured");
+  }
+  return new OpenAI({
+    baseURL: "https://openrouter.ai/api/v1",
+    apiKey,
+    defaultHeaders: {
+      "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+      "X-Title": "Resumify",
+    },
+  });
+}
+
 async function callAI(prompt: string, maxTokens = 12000): Promise<string> {
-  const res = await openrouter.chat.completions.create({
+  const res = await getOpenRouterClient().chat.completions.create({
     model: MODEL,
     messages: [{ role: "user", content: prompt }],
     max_tokens: maxTokens,
@@ -115,6 +122,16 @@ export async function POST(request: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    if (!process.env.OPENROUTER_API_KEY) {
+      return NextResponse.json(
+        {
+          error:
+            "AI is not configured. Add OPENROUTER_API_KEY to your project environment (e.g. Vercel → Settings → Environment Variables).",
+        },
+        { status: 503 }
+      );
+    }
 
     const { data: profile } = await supabase
       .from("user_profiles")
