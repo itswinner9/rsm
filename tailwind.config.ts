@@ -16,7 +16,24 @@ const config: Config = {
       screens: { "2xl": "1400px" },
     },
     extend: {
+      fontSize: {
+        "tremor-label": ["0.75rem", { lineHeight: "1rem" }],
+      },
       colors: {
+        tremor: {
+          background: {
+            DEFAULT: "#ffffff",
+            subtle: "#f3f4f6",
+          },
+          "content-emphasis": "#374151",
+        },
+        "dark-tremor": {
+          background: {
+            DEFAULT: "#0f172a",
+            subtle: "#1f2937",
+          },
+          "content-emphasis": "#d1d5db",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -55,6 +72,8 @@ const config: Config = {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        "tremor-small": "0.375rem",
+        "tremor-default": "0.5rem",
       },
       keyframes: {
         "accordion-down": {

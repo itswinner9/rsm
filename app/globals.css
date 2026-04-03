@@ -26,6 +26,8 @@
     --radius: 0.75rem;
     --sidebar: 220 14% 97%;
     --sidebar-border: 220 13% 91%;
+    --tremor-ring: 229 231 235;
+    --dark-tremor-ring: 31 41 55;
   }
 
   /* AppShell-only: calm ChatGPT-like dark (class on shell root) */
@@ -52,6 +54,8 @@
     --radius: 0.875rem;
     --sidebar: 0 0% 10%;
     --sidebar-border: 0 0% 16%;
+    --tremor-ring: 31 41 55;
+    --dark-tremor-ring: 229 231 235;
   }
 }
 

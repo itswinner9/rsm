@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { validateEvent, WebhookVerificationError } from "@polar-sh/sdk/webhooks";
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { createServiceRoleClient } from "@/lib/supabase/admin";
 
 type PolarSubscriptionWebhookData = {
   id: string;
@@ -31,13 +27,13 @@ function profileStatus(subStatus: string): string {
   return "inactive";
 }
 
-async function applySubscription(sub: PolarSubscriptionWebhookData) {
+async function applySubscription(supabase: SupabaseClient, sub: PolarSubscriptionWebhookData) {
   const userId = userIdFromSubscription(sub);
   if (!userId) {
     console.warn("[polar/webhook] No user id on subscription", sub.id);
     return;
   }
-  await supabaseAdmin
+  await supabase
     .from("user_profiles")
     .update({
       subscription_status: profileStatus(sub.status),
@@ -53,6 +49,12 @@ export async function POST(request: NextRequest) {
   if (!secret) {
     console.error("POLAR_WEBHOOK_SECRET is not set");
     return NextResponse.json({ error: "Webhook not configured" }, { status: 500 });
+  }
+
+  const supabase = createServiceRoleClient();
+  if (!supabase) {
+    console.error("Supabase service client unavailable (NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY)");
+    return NextResponse.json({ error: "Server not configured" }, { status: 503 });
   }
 
   const rawBody = await request.text();
@@ -88,7 +90,7 @@ export async function POST(request: NextRequest) {
                 ? String(meta)
                 : null;
         if (!userId || !order.subscriptionId) break;
-        await supabaseAdmin
+        await supabase
           .from("user_profiles")
           .update({
             subscription_status: "active",
@@ -107,7 +109,7 @@ export async function POST(request: NextRequest) {
           (s) => s.status === "active" || s.status === "trialing"
         );
         if (active) {
-          await supabaseAdmin
+          await supabase
             .from("user_profiles")
             .update({
               subscription_status: "active",
@@ -122,14 +124,14 @@ export async function POST(request: NextRequest) {
       case "subscription.active":
       case "subscription.updated":
       case "subscription.uncanceled":
-        await applySubscription(event.data);
+        await applySubscription(supabase, event.data);
         break;
       case "subscription.canceled":
       case "subscription.revoked": {
         const sub = event.data;
         const userId = userIdFromSubscription(sub);
         if (userId) {
-          await supabaseAdmin
+          await supabase
             .from("user_profiles")
             .update({
               subscription_status: event.type === "subscription.canceled" ? "canceled" : "inactive",
@@ -141,7 +143,7 @@ export async function POST(request: NextRequest) {
         break;
       }
       case "subscription.past_due":
-        await applySubscription(event.data);
+        await applySubscription(supabase, event.data);
         break;
       default:
         break;

@@ -5,8 +5,6 @@ import Link from "next/link";
 import {
   ListPlus,
   ListChecks,
-  TrendingUp,
-  TrendingDown,
   ThumbsUp,
   AlertCircle,
   Lightbulb,
@@ -15,6 +13,7 @@ import {
   Wand2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { BadgeDelta } from "@/components/ui/badge-delta";
 import { stripHtmlFromText } from "@/lib/resume/sanitizeResumeText";
 import { Button } from "@/components/ui/button";
 
@@ -150,23 +149,15 @@ export function ATSScore({
         <div className="rounded-xl border border-border bg-muted/30 p-3 text-center">
           <p className="mb-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Optimized</p>
           <ScoreRing score={opt} accentClass={ringAccent(opt)} />
-          <div className="mt-2 flex items-center justify-center gap-1">
-            {improvement >= 0 ? (
-              <TrendingUp className="size-3.5 text-emerald-600" strokeWidth={1.25} />
-            ) : (
-              <TrendingDown className="size-3.5 text-amber-600" strokeWidth={1.25} />
-            )}
-            <span
-              className={cn(
-                "text-[11px] font-semibold tabular-nums",
-                improvement > 0 && "text-emerald-700",
-                improvement === 0 && "text-muted-foreground",
-                improvement < 0 && "text-amber-700"
-              )}
-            >
-              {improvement >= 0 ? "+" : ""}
-              {improvement}%
-            </span>
+          <div className="mt-2 flex flex-col items-center gap-1.5">
+            <BadgeDelta
+              variant="complex"
+              deltaType={
+                improvement > 0 ? "increase" : improvement < 0 ? "decrease" : "neutral"
+              }
+              value={`${improvement > 0 ? "+" : ""}${improvement}%`}
+              aria-label={`Keyword overlap change versus original: ${improvement >= 0 ? "+" : ""}${improvement} percent`}
+            />
             <span className="text-[10px] text-muted-foreground">vs original</span>
           </div>
         </div>

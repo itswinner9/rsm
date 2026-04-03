@@ -14,6 +14,7 @@ import { GoogleOAuthButton } from "@/components/auth/google-oauth-button";
 import { AuthEmailDivider } from "@/components/auth/auth-email-divider";
 import { authInputClass } from "@/components/auth/auth-input-class";
 import { SITE_NAME } from "@/lib/site-nav";
+import { getAuthCallbackUrl } from "@/lib/auth-redirect";
 
 function readSearchParams() {
   if (typeof window === "undefined") {
@@ -95,7 +96,7 @@ export default function LoginPage() {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: `${window.location.origin}/auth/callback` },
+        options: { redirectTo: getAuthCallbackUrl() },
       });
       if (error) {
         toast({ title: "Google login failed", description: error.message, variant: "destructive" });
