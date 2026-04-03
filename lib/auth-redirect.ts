@@ -1,15 +1,14 @@
 /**
  * Absolute callback URL for Supabase email confirmation and OAuth.
- * Prefers NEXT_PUBLIC_APP_URL when set (matches production deploy), otherwise the current browser origin.
+ * On the client, always use the current browser origin so production (e.g. resumify.cc) never
+ * receives localhost links when NEXT_PUBLIC_APP_URL was mis-set on Vercel. Server-side uses env.
  */
 export function getAuthCallbackUrl(): string {
-  const envBase = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "");
   if (typeof window !== "undefined") {
-    const origin =
-      envBase && envBase.startsWith("http") ? envBase : window.location.origin;
-    return new URL("/auth/callback", origin).href;
+    return new URL("/auth/callback", window.location.origin).href;
   }
-  if (envBase && envBase.startsWith("http")) {
+  const envBase = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "");
+  if (envBase?.startsWith("http")) {
     return new URL("/auth/callback", envBase).href;
   }
   return new URL("/auth/callback", "http://localhost:3000").href;

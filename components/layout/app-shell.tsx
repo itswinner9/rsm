@@ -19,7 +19,7 @@ import {
 import { cn } from "@/lib/utils";
 import { ResumifyBrand } from "@/components/brand/resumify-logo";
 
-const POLAR_SYNC_SESSION_KEY = "rsm_polar_sync_v1";
+const STRIPE_SYNC_SESSION_KEY = "rsm_stripe_sync_v1";
 
 const navGroups: {
   label: string;
@@ -80,13 +80,13 @@ export function AppShell({ children, userEmail, isPro }: AppShellProps) {
 
   useEffect(() => {
     if (isPro || typeof window === "undefined" || syncStarted.current) return;
-    if (sessionStorage.getItem(POLAR_SYNC_SESSION_KEY)) return;
+    if (sessionStorage.getItem(STRIPE_SYNC_SESSION_KEY)) return;
     syncStarted.current = true;
-    sessionStorage.setItem(POLAR_SYNC_SESSION_KEY, "1");
+    sessionStorage.setItem(STRIPE_SYNC_SESSION_KEY, "1");
 
     (async () => {
       try {
-        const res = await fetch("/api/polar/sync", { method: "POST", credentials: "same-origin" });
+        const res = await fetch("/api/stripe/sync", { method: "POST", credentials: "same-origin" });
         const data = (await res.json()) as { active?: boolean };
         if (data.active) router.refresh();
       } catch {

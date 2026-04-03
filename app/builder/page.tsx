@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import type { OptimizedResumeData, ResumeTemplateId } from "@/lib/resume/types";
 import { TEMPLATE_META } from "@/lib/resume/types";
+import { hasPaidPlanAccess } from "@/lib/subscription/access";
 
 interface TemplatePreviewMeta {
   id: ResumeTemplateId;
@@ -66,8 +67,7 @@ export default function BuilderPage() {
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [optimizingStep, setOptimizingStep] = useState(0);
   const [userEmail, setUserEmail] = useState<string | undefined>();
-  const [trialUsed, setTrialUsed] = useState<boolean | null>(null);
-  const [isSubscribed, setIsSubscribed] = useState<boolean | null>(null);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
   const [result, setResult] = useState<OptimizeResult | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<ResumeTemplateId>("classic");
   const [downloading, setDownloading] = useState<{ templateId: ResumeTemplateId; kind: "pdf" | "docx" } | null>(null);
@@ -85,8 +85,7 @@ export default function BuilderPage() {
         if (!profileRes.ok) return;
         const data = await profileRes.json();
         if (!cancelled) {
-          setTrialUsed(!!data.trial_used);
-          setIsSubscribed(data.subscription_status === "active");
+          setSubscriptionStatus(typeof data.subscription_status === "string" ? data.subscription_status : null);
         }
         if (meRes?.ok) {
           const me = await meRes.json();
@@ -140,14 +139,41 @@ export default function BuilderPage() {
 
       const data = await response.json();
 
-      if (response.status === 403 && data.error === "trial_exhausted") {
-        toast({
-          title: "Starter trial used",
-          description: "Upgrade to Flex or Search Pass for unlimited optimizations.",
-          variant: "destructive",
-        });
-        router.push("/pricing");
-        return;
+      if (response.status === 403) {
+        const err = typeof data.error === "string" ? data.error : "";
+        if (err === "subscription_required") {
+          toast({
+            title: "Subscription required",
+            description:
+              typeof data.message === "string"
+                ? data.message
+                : "Start your trial or subscribe on the plans page (card required).",
+            variant: "destructive",
+          });
+          router.push("/pricing");
+          return;
+        }
+        if (err === "trial_daily_limit") {
+          toast({
+            title: "Trial daily limit",
+            description:
+              typeof data.message === "string"
+                ? data.message
+                : "Trial includes one optimization per UTC day. Try again tomorrow or upgrade.",
+            variant: "destructive",
+          });
+          return;
+        }
+        if (err === "trial_ended") {
+          toast({
+            title: "Trial ended",
+            description:
+              typeof data.message === "string" ? data.message : "Update your subscription in billing to continue.",
+            variant: "destructive",
+          });
+          router.push("/pricing");
+          return;
+        }
       }
       if (response.status === 503) {
         toast({
@@ -181,8 +207,7 @@ export default function BuilderPage() {
       const pr = await fetch("/api/user/profile").catch(() => null);
       if (pr?.ok) {
         const p = await pr.json();
-        setTrialUsed(!!p.trial_used);
-        setIsSubscribed(p.subscription_status === "active");
+        setSubscriptionStatus(typeof p.subscription_status === "string" ? p.subscription_status : null);
       }
     } catch (error) {
       toast({
@@ -260,7 +285,8 @@ export default function BuilderPage() {
     }
   };
 
-  const canGenerate = isSubscribed || !trialUsed;
+  const canGenerate = hasPaidPlanAccess(subscriptionStatus);
+  const isPaidActive = subscriptionStatus === "active";
 
   const previewMeta = (id: ResumeTemplateId) => {
     const fromApi = result?.template_previews?.find((p) => p.id === id);
@@ -275,7 +301,7 @@ export default function BuilderPage() {
   ] as const;
 
   return (
-    <AppShell userEmail={userEmail} isPro={!!isSubscribed}>
+    <AppShell userEmail={userEmail} isPro={canGenerate}>
       <div className="max-w-6xl mx-auto">
         <div className="mb-8 sm:mb-10 flex flex-col gap-5 sm:gap-6">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
@@ -365,26 +391,12 @@ export default function BuilderPage() {
           </div>
         </div>
 
-        {isSubscribed === false && trialUsed === false && step < 3 && (
-          <div className="mb-6 rounded-2xl border border-border bg-muted/30 px-4 py-3.5">
+        {subscriptionStatus !== null && !canGenerate && step < 3 && (
+          <div className="mb-6 rounded-2xl border border-border bg-muted/30 px-4 py-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <p className="text-sm text-muted-foreground leading-relaxed">
-              <span className="text-foreground font-medium">Starter:</span> one full optimization — three layouts, PDF &
-              DOCX.{" "}
-              <button
-                type="button"
-                className="text-foreground underline underline-offset-2 hover:no-underline"
-                onClick={() => router.push("/pricing")}
-              >
-                Upgrade for unlimited
-              </button>
-              .
+              <span className="text-foreground font-medium">Subscription required.</span> Start a 3-day trial with your
+              card on the plans page, then $9.99/mo or $99.99/yr CAD.
             </p>
-          </div>
-        )}
-
-        {isSubscribed === false && trialUsed === true && step < 3 && (
-          <div className="mb-6 rounded-2xl border border-amber-500/20 bg-amber-500/[0.06] px-4 py-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <p className="text-sm text-muted-foreground">Starter trial used. View plans to keep optimizing.</p>
             <Button
               size="sm"
               className="shrink-0 rounded-full min-h-10 px-5 w-full sm:w-auto"
@@ -392,6 +404,15 @@ export default function BuilderPage() {
             >
               View plans
             </Button>
+          </div>
+        )}
+
+        {subscriptionStatus === "trialing" && step < 3 && (
+          <div className="mb-6 rounded-2xl border border-primary/20 bg-primary/[0.04] px-4 py-3.5">
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              <span className="text-foreground font-medium">Trial:</span> one optimization per UTC calendar day. Unlimited
+              runs once your paid period starts.
+            </p>
           </div>
         )}
 
@@ -624,7 +645,7 @@ export default function BuilderPage() {
                         weaknesses={result.weaknesses}
                         suggestions={result.suggestions}
                         improvements={result.improvements}
-                        isSubscribed={isSubscribed === true}
+                        isPaidActive={isPaidActive}
                         suggestedTemplateLabel={TEMPLATE_META[result.suggested_template]?.label}
                       />
                     </div>

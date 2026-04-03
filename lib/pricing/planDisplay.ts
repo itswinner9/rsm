@@ -1,8 +1,8 @@
 /**
- * User-visible pricing copy. Checkout still uses Polar plan keys `pro` | `recruiting`.
+ * User-visible pricing copy. Checkout uses Stripe plans `month` | `year` (3-day card trial).
  */
 
-export type CheckoutPlanId = "pro" | "recruiting";
+export type CheckoutPlanId = "month" | "year";
 
 export type TierIcon = "zap" | "crown" | "sparkles";
 
@@ -15,17 +15,17 @@ export interface TierBadge {
 
 export interface PricingTierDefinition {
   /** UI id */
-  id: "starter" | "flex" | "searchPass";
+  id: "starter" | "monthly" | "yearly";
   displayName: string;
   tagline: string;
-  /** e.g. "$0" / "$15" / "$60" */
+  /** e.g. "$0" / "$9.99" */
   priceAmount: string;
-  /** e.g. "one-time" / "/ month" / "/ 6 months" */
+  /** e.g. "3-day trial" / "/ month" */
   priceSuffix: string;
   featuresDetailed: string[];
   featuresHome: string[];
   ctaLabel: string;
-  /** Starter uses signup link */
+  /** Paid tiers only */
   checkoutPlan?: CheckoutPlanId;
   signupHref?: string;
   badges?: TierBadge[];
@@ -39,102 +39,95 @@ export const pricingHero = {
   eyebrow: "Plans · resumify.cc",
   title: "Invest in interviews—not ignored applications",
   subtitle:
-    "ATS systems screen you before a human ever does. Resumify aligns your real experience to each job, shows your match score, and exports clean PDFs and DOCX. Start free once, then go unlimited when you’re serious about your search.",
+    "ATS systems screen you before a human ever does. Resumify aligns your real experience to each job, shows your match score, and exports clean PDFs and DOCX. Start with a 3-day trial (card on file), then stay on monthly or yearly billing in CAD.",
 };
 
 export const homePricingHero = {
   eyebrow: "Plans · resumify.cc",
   title: "A few dollars a month vs. months of silence",
   subtitle:
-    "Try the full flow free with Starter. Flex ($15/mo) unlocks unlimited optimizations—every new posting, new keywords, new score. Search Pass ($60/6 mo) is the lowest per-month rate if you’re in it for the season.",
+    "Subscribe with a card to start your 3-day trial: one optimization per UTC day while trialing, then unlimited while your subscription is active. Choose monthly or yearly billing—all in Canadian dollars via Stripe.",
 };
 
 export const tierDefinitions: Record<PricingTierDefinition["id"], PricingTierDefinition> = {
   starter: {
     id: "starter",
-    displayName: "Starter",
-    tagline: "See your match score before you pay anything",
-    priceAmount: "$0",
-    priceSuffix: "one-time",
+    displayName: "How it works",
+    tagline: "Card required — trial, then your chosen plan",
+    priceAmount: "3-day",
+    priceSuffix: "trial",
     featuresDetailed: [
-      "1 resume optimization",
-      "1 ATS-optimized master resume",
-      "3 visual templates (same content)",
-      "PDF & DOCX download",
-      "Keyword match analysis",
-      "ATS score insights",
+      "Add a payment method to start (no charge until the trial ends)",
+      "During trial: 1 optimization per calendar day (UTC)",
+      "After trial: unlimited optimizations on an active subscription",
+      "Cancel or change plan in the Stripe billing portal",
     ],
     featuresHome: [
-      "1 full optimization",
-      "1 master resume + 3 templates",
-      "PDF & DOCX export",
-      "Keyword analysis & ATS insights",
+      "Stripe Checkout — secure, PCI-compliant",
+      "Trial then $9.99/mo or $99.99/yr CAD",
+      "1 run per UTC day on trial, then unlimited",
     ],
-    ctaLabel: "Start with Starter",
+    ctaLabel: "Create account",
     signupHref: "/auth/signup",
     icon: "zap",
+    footerNote: "Then pick Monthly or Yearly on the plans page.",
   },
-  flex: {
-    id: "flex",
-    displayName: "Flex",
-    tagline: "Unlimited rewrites for every job you apply to",
-    priceAmount: "$15",
-    priceSuffix: "/ month",
+  monthly: {
+    id: "monthly",
+    displayName: "Monthly",
+    tagline: "Flexible — stay as long as your search lasts",
+    priceAmount: "$9.99",
+    priceSuffix: "/ month CAD",
     featuresDetailed: [
-      "Everything in Starter, plus:",
-      "Unlimited optimizations & exports",
-      "AI bullet point generator",
-      "AI summary & headline writer",
-      "ATS keyword optimization & scoring",
-      "Full template library (all layouts)",
-      "Priority email support",
+      "Everything after trial, including:",
+      "Unlimited optimizations & exports while subscribed",
+      "AI bullet, summary & headline tools",
+      "ATS keyword tuning & match scoring",
+      "Full template library · PDF & DOCX",
+      "Manage or cancel in the billing portal",
     ],
     featuresHome: [
-      "Everything in Starter, plus:",
-      "Unlimited optimizations",
-      "AI bullets, summary & headline",
-      "ATS keyword tuning",
-      "Priority email support",
+      "3-day trial with card, then monthly billing",
+      "Unlimited runs after trial while active",
+      "Cancel anytime from billing portal",
     ],
-    ctaLabel: "Get Flex",
-    checkoutPlan: "pro",
-    badges: [{ label: "Most flexible", variant: "amber" }],
+    ctaLabel: "Start monthly",
+    checkoutPlan: "month",
+    badges: [{ label: "Flexible", variant: "amber" }],
     icon: "crown",
-    footerNote: "Secure checkout via Polar.",
+    footerNote: "Secure checkout via Stripe.",
   },
-  searchPass: {
-    id: "searchPass",
-    displayName: "Search Pass",
-    tagline: "Best value if your search lasts a few months",
-    priceAmount: "$60",
-    priceSuffix: "/ 6 months",
+  yearly: {
+    id: "yearly",
+    displayName: "Yearly",
+    tagline: "Best value if you’re hiring-season ready",
+    priceAmount: "$99.99",
+    priceSuffix: "/ year CAD",
     featuresDetailed: [
-      "Everything in Flex—included for six months",
-      "~$10/mo effective vs $15/mo Flex (save 33%)",
-      "One payment covers a full hiring season",
-      "Same unlimited optimizations & exports",
-      "Same AI rewrites, ATS tools, and templates",
-      "Billed every six months; manage or cancel in your billing portal",
+      "Same product as Monthly — better annual price",
+      "3-day trial, then yearly billing in CAD",
+      "Unlimited optimizations while subscribed",
+      "AI rewrites, ATS tools, templates, exports",
+      "Receipts & payment method in Stripe portal",
     ],
     featuresHome: [
-      "Every Flex feature, prepaid for 6 months",
-      "Lowest per-month rate (~$10/mo)",
-      "Ideal for a longer job search",
-      "Unlimited optimizations & exports",
+      "Lower effective monthly vs paying month-by-month",
+      "3-day trial then annual billing",
+      "Unlimited optimizations after trial",
     ],
-    ctaLabel: "Get Search Pass",
-    checkoutPlan: "recruiting",
+    ctaLabel: "Start yearly",
+    checkoutPlan: "year",
     badges: [
-      { label: "SAVE 33%", variant: "primary" },
+      { label: "SAVE", variant: "primary" },
       { label: "Best value", variant: "amber" },
     ],
     highlight: true,
     icon: "sparkles",
-    footerNote: "Billed every six months. Cancel anytime from your billing portal.",
+    footerNote: "Billed once per year. Manage in Stripe Customer Portal.",
   },
 };
 
-export const pricingTierOrder: PricingTierDefinition["id"][] = ["starter", "flex", "searchPass"];
+export const pricingTierOrder: PricingTierDefinition["id"][] = ["starter", "monthly", "yearly"];
 
 export const faqSectionTitle = "Common questions";
 
@@ -153,10 +146,14 @@ export const pricingFaqs: { q: string; a: string }[] = [
   },
   {
     q: "How do I cancel or change my plan?",
-    a: "For Flex (monthly) and Search Pass (six months prepaid), manage or cancel anytime in your billing customer portal (checkout is via Polar). You keep full access through the end of the period you’ve already paid for.",
+    a: "Use the Stripe Customer Portal from your account (Manage billing). You keep access through the period you’ve already paid for. Trial billing is explained at checkout.",
   },
   {
-    q: "What’s the difference between Flex and Search Pass?",
-    a: "Same product features—unlimited optimizations and exports while your subscription is active. Flex bills monthly, which is ideal if you want a short commitment. Search Pass is six months prepaid at a lower effective monthly rate, which suits a longer search. Pick the billing style that fits your timeline and budget.",
+    q: "What’s the difference between Monthly and Yearly?",
+    a: "Same features—unlimited optimizations while your subscription is active after the trial. Monthly bills each month in CAD; Yearly bills once per year at a lower effective monthly rate. Pick the cadence that fits your job search.",
+  },
+  {
+    q: "How does the 3-day trial work?",
+    a: "You add a card at checkout to start a 3-day trial. While in trial status, you can run one optimization per UTC calendar day. When the trial ends, your paid plan continues unless you cancel in the billing portal before then.",
   },
 ];

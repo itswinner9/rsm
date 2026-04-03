@@ -15,7 +15,8 @@ import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/layout/app-shell";
 import { DashboardClearSuccessQuery } from "@/components/dashboard/dashboard-clear-success-query";
-import { syncPolarSubscriptionForUser } from "@/lib/polar/syncSubscription";
+import { syncStripeSubscriptionForUser } from "@/lib/stripe/syncSubscription";
+import { hasPaidPlanAccess } from "@/lib/subscription/access";
 import { parseResumeTemplateId, TEMPLATE_SHORT_LABEL } from "@/lib/resume/types";
 import { AtsTrendMini, type AtsTrendPoint } from "@/components/dashboard/AtsTrendMini";
 import type { Metadata } from "next";
@@ -66,8 +67,8 @@ async function getData() {
   let profileRes = await supabase.from("user_profiles").select("*").eq("user_id", user.id).single();
 
   const profileRow = profileRes.data;
-  if (!profileRow || profileRow.subscription_status !== "active") {
-    await syncPolarSubscriptionForUser(user.id);
+  if (!profileRow || !hasPaidPlanAccess(profileRow.subscription_status)) {
+    await syncStripeSubscriptionForUser(user.id);
     profileRes = await supabase.from("user_profiles").select("*").eq("user_id", user.id).single();
   }
 
@@ -90,9 +91,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Da
   const { user, profile, generations, generationsTotalCount } = await getData();
   const showPaymentSuccess = paymentJustCompleted(searchParams);
 
-  const isSubscribed = profile?.subscription_status === "active";
-  const trialUsed = profile?.trial_used;
-  const canGenerate = isSubscribed || !trialUsed;
+  const isSubscribed = hasPaidPlanAccess(profile?.subscription_status);
+  const canGenerate = isSubscribed;
 
   const scores = generations.map((g) => optimizedScoreForGen(g)).filter((n): n is number => n != null);
   const bestScore = scores.length ? Math.max(...scores) : null;
@@ -117,7 +117,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Da
       <Suspense fallback={null}>
         <DashboardClearSuccessQuery />
       </Suspense>
-      <AppShell userEmail={user.email} isPro={isSubscribed}>
+      <AppShell userEmail={user.email} isPro={hasPaidPlanAccess(profile?.subscription_status)}>
         <div className="max-w-4xl mx-auto space-y-10 pb-16">
           {showPaymentSuccess && (
             <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 flex gap-3">
@@ -135,13 +135,17 @@ export default async function DashboardPage({ searchParams }: { searchParams: Da
               <p className="text-sm text-muted-foreground mt-1">
                 {generations.length > 0
                   ? `${generations.length} optimization run${generations.length !== 1 ? "s" : ""} saved · ${
-                      isSubscribed ? "Full access" : trialUsed ? "Starter" : "Starter"
+                      profile?.subscription_status === "trialing"
+                        ? "Trial"
+                        : isSubscribed
+                          ? "Full access"
+                          : "Subscribe to run more"
                     }`
                   : isSubscribed
-                    ? "Full access"
-                    : trialUsed
-                      ? "Starter"
-                      : "Starter · one free run"}
+                    ? profile?.subscription_status === "trialing"
+                      ? "Trial · 1 run per UTC day"
+                      : "Full access"
+                    : "Subscribe to optimize"}
               </p>
             </div>
             {canGenerate && (
@@ -274,7 +278,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Da
           {!isSubscribed && (
             <div className="rounded-xl border border-border bg-muted/30 px-4 py-3.5 flex flex-col sm:flex-row sm:items-center gap-3">
               <p className="text-sm text-muted-foreground flex-1">
-                {trialUsed ? "Upgrade for unlimited runs." : "One free run left, then upgrade."}
+                Start a 3-day trial with card on the plans page, then unlimited while subscribed.
               </p>
               <Button asChild size="sm" variant="outline" className="rounded-full shrink-0 h-9 text-xs border-border">
                 <Link href="/pricing">
@@ -286,11 +290,13 @@ export default async function DashboardPage({ searchParams }: { searchParams: Da
 
           {generations.length === 0 && (
             <div className="rounded-2xl border border-dashed border-border bg-muted/20 py-16 px-6 text-center">
-              <p className="text-sm text-muted-foreground mb-5">No runs yet.</p>
+              <p className="text-sm text-muted-foreground mb-5">
+                {isSubscribed ? "No runs yet." : "Subscribe to run your first optimization."}
+              </p>
               <Button asChild className="rounded-full h-10 px-6 text-sm">
-                <Link href="/builder">
+                <Link href={isSubscribed ? "/builder" : "/pricing"}>
                   <Sparkles className="size-3.5 mr-2" strokeWidth={1.25} />
-                  Open builder
+                  {isSubscribed ? "Open builder" : "View plans"}
                 </Link>
               </Button>
             </div>

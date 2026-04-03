@@ -19,7 +19,8 @@ import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/layout/app-shell";
 import { ManageBillingButton } from "@/components/profile/ManageBillingButton";
-import { syncPolarSubscriptionForUser } from "@/lib/polar/syncSubscription";
+import { syncStripeSubscriptionForUser } from "@/lib/stripe/syncSubscription";
+import { hasPaidPlanAccess } from "@/lib/subscription/access";
 import { cn } from "@/lib/utils";
 import { siteDescription, openGraphDefaults } from "@/lib/site-metadata";
 import { parseResumeTemplateId, TEMPLATE_SHORT_LABEL } from "@/lib/resume/types";
@@ -65,8 +66,8 @@ async function getData() {
   ]);
 
   let p = profile;
-  if (!p || p.subscription_status !== "active") {
-    await syncPolarSubscriptionForUser(user.id);
+  if (!p || !hasPaidPlanAccess(p.subscription_status)) {
+    await syncStripeSubscriptionForUser(user.id);
     const { data: fresh } = await supabase.from("user_profiles").select("*").eq("user_id", user.id).single();
     p = fresh ?? p;
   }
@@ -82,8 +83,17 @@ async function getData() {
 export default async function ProfilePage() {
   const { user, profile, generationsCount, recentGenerations } = await getData();
 
-  const isSubscribed = profile?.subscription_status === "active";
-  const trialUsed = profile?.trial_used;
+  const status = profile?.subscription_status;
+  const hasAccess = hasPaidPlanAccess(status);
+  const isTrialing = status === "trialing";
+  const isActive = status === "active";
+  const trialEnds = profile?.subscription_trial_end
+    ? new Date(profile.subscription_trial_end).toLocaleDateString("en-CA", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })
+    : null;
   const memberSince = new Date(user.created_at || Date.now()).toLocaleDateString("en-CA", {
     year: "numeric", month: "long", day: "numeric",
   });
@@ -93,14 +103,14 @@ export default async function ProfilePage() {
   const lastTemplate = lastGen ? parseResumeTemplateId(lastGen.selected_template) : null;
 
   return (
-    <AppShell userEmail={user.email} isPro={isSubscribed}>
+    <AppShell userEmail={user.email} isPro={hasAccess}>
       <div className="max-w-xl mx-auto space-y-8">
 
         {/* Header */}
         <div className="text-center sm:text-left">
           <h1 className="text-2xl font-semibold text-foreground tracking-tight sm:text-[1.65rem]">Profile</h1>
           <p className="text-muted-foreground text-sm mt-1.5 leading-relaxed">
-            {isSubscribed ? "Account details and billing." : "Account, trial, and subscription."}
+            {hasAccess ? "Account details and billing." : "Account and subscription."}
           </p>
         </div>
 
@@ -116,10 +126,12 @@ export default async function ProfilePage() {
               <p className="font-medium text-foreground truncate text-[15px]">{user.email?.split("@")[0]}</p>
               <p className="text-sm text-muted-foreground truncate">{user.email}</p>
             </div>
-            {isSubscribed && (
+            {hasAccess && (
               <div className="shrink-0 flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-2.5 py-1">
                 <Crown className="size-3.5 text-muted-foreground" strokeWidth={1.25} />
-                <span className="text-[11px] font-medium text-muted-foreground">Full access</span>
+                <span className="text-[11px] font-medium text-muted-foreground">
+                  {isTrialing ? "Trial" : "Full access"}
+                </span>
               </div>
             )}
           </div>
@@ -169,63 +181,59 @@ export default async function ProfilePage() {
               <div
                 className={cn(
                   "size-10 rounded-xl flex items-center justify-center border shrink-0",
-                  isSubscribed ? "bg-muted/50 border-border" : "bg-muted/40 border-border"
+                  hasAccess ? "bg-muted/50 border-border" : "bg-muted/40 border-border"
                 )}
               >
                 <Crown className="size-4 text-muted-foreground" strokeWidth={1.25} />
               </div>
               <div className="min-w-0">
-                <p className="font-semibold text-foreground">{isSubscribed ? "Full access" : "Starter"}</p>
+                <p className="font-semibold text-foreground">
+                  {isActive ? "Full access" : isTrialing ? "Trial" : "Subscribe to optimize"}
+                </p>
                 <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">
-                  {isSubscribed
-                    ? "Unlimited optimizations and exports (Flex or Search Pass)."
-                    : trialUsed
-                      ? generationsCount > 0
-                        ? "Starter free run used — your resume is saved below. Upgrade to optimize more roles."
-                        : "Starter trial used — upgrade to Flex or Search Pass to continue."
-                      : "One Starter optimization included."}
+                  {isActive
+                    ? "Unlimited optimizations and exports while your subscription is active."
+                    : isTrialing
+                      ? `Trial: one optimization per UTC day until ${trialEnds ?? "trial end"}. Then unlimited on a paid plan.`
+                      : "Start with a 3-day trial (card required at checkout), then $9.99/mo or $99.99/yr CAD via Stripe."}
                 </p>
               </div>
             </div>
-            {isSubscribed && (
+            {hasAccess && (
               <div className="flex items-center gap-1.5 text-muted-foreground text-xs font-medium shrink-0">
-                <div className="size-1.5 rounded-full bg-emerald-400/80" />
-                Active
+                <div
+                  className={cn(
+                    "size-1.5 rounded-full",
+                    isTrialing ? "bg-amber-400/90" : "bg-emerald-400/80"
+                  )}
+                />
+                {isTrialing ? "Trialing" : "Active"}
               </div>
             )}
           </div>
 
-          {isSubscribed ? (
+          {hasAccess ? (
             <div className="border-t border-border pt-4">
-              <p className="text-xs text-muted-foreground mb-3">Payment method and invoices in the billing portal.</p>
+              <p className="text-xs text-muted-foreground mb-3">
+                Payment method and invoices in Stripe&apos;s secure billing portal.
+              </p>
               <ManageBillingButton />
             </div>
           ) : (
             <div className="space-y-3 mb-4">
-              <div
-                className={cn(
-                  "rounded-xl p-3 flex items-start gap-3 border",
-                  trialUsed ? "bg-red-500/[0.06] border-red-500/20" : "bg-muted/30 border-border"
-                )}
-              >
-                <AlertCircle
-                  className={cn("size-4 shrink-0 mt-0.5 text-muted-foreground", trialUsed && "text-red-400/90")}
-                  strokeWidth={1.25}
-                />
+              <div className="rounded-xl p-3 flex items-start gap-3 border bg-muted/30 border-border">
+                <AlertCircle className="size-4 shrink-0 mt-0.5 text-muted-foreground" strokeWidth={1.25} />
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  {trialUsed
-                    ? generationsCount > 0
-                      ? `Your free Starter run is complete. You have ${generationsCount} saved resume${generationsCount !== 1 ? "s" : ""} — open Recent or see below for your last one.`
-                      : "Your Starter trial is used. Upgrade to Flex or Search Pass for unlimited optimizations."
-                    : "You have 1 Starter optimization left. After that, choose Flex or Search Pass to continue."}
+                  Optimizations require an active subscription or trial. Choose monthly or yearly on the plans page —
+                  your card secures the 3-day trial; billing continues after unless you cancel in the portal.
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 {[
-                  "Flex: $15/month",
-                  "Search Pass: $60 / 6 months (save vs monthly)",
-                  "Unlimited optimizations & exports",
-                  "AI rewrites & ATS tools",
+                  "$9.99 CAD / month",
+                  "$99.99 CAD / year",
+                  "1 optimization per UTC day on trial",
+                  "Unlimited after trial while subscribed",
                 ].map((f) => (
                   <div key={f} className="flex items-center gap-2 text-muted-foreground text-xs">
                     <ChevronRight className="size-3 shrink-0 text-muted-foreground/60" strokeWidth={1.25} />
@@ -236,16 +244,16 @@ export default async function ProfilePage() {
             </div>
           )}
 
-          {!isSubscribed && (
+          {!hasAccess && (
             <div className="space-y-2">
               <Button asChild className="w-full rounded-full min-h-11">
                 <Link href="/pricing">
                   <Crown className="size-4 mr-2" strokeWidth={1.25} />
-                  View plans — Flex or Search Pass
+                  View plans & start trial
                 </Link>
               </Button>
               <p className="text-xs text-muted-foreground text-center">
-                Compare monthly Flex vs six-month Search Pass on the plans page.
+                Checkout is powered by Stripe; you can manage billing anytime from this page once subscribed.
               </p>
             </div>
           )}

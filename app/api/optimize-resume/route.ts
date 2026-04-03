@@ -135,16 +135,47 @@ export async function POST(request: NextRequest) {
 
     const { data: profile } = await supabase
       .from("user_profiles")
-      .select("trial_used, subscription_status")
+      .select("subscription_status, subscription_trial_end")
       .eq("user_id", user.id)
       .single();
 
-    const hasAccess = !profile?.trial_used || profile?.subscription_status === "active";
-    if (!hasAccess) {
+    const subStatus = profile?.subscription_status ?? "inactive";
+    if (subStatus !== "active" && subStatus !== "trialing") {
       return NextResponse.json(
-        { error: "trial_exhausted", message: "Starter trial used. Upgrade to Flex or Search Pass to continue." },
+        {
+          error: "subscription_required",
+          message: "Start your 3-day trial (card required) or subscribe to optimize resumes.",
+        },
         { status: 403 }
       );
+    }
+
+    if (subStatus === "trialing") {
+      const trialEnd = profile?.subscription_trial_end ? new Date(profile.subscription_trial_end) : null;
+      if (trialEnd && Date.now() > trialEnd.getTime()) {
+        return NextResponse.json(
+          { error: "trial_ended", message: "Your trial has ended. Upgrade to continue." },
+          { status: 403 }
+        );
+      }
+
+      const todayUtc = new Date().toISOString().slice(0, 10);
+      const { data: usedToday } = await supabase
+        .from("trial_daily_optimizations")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("usage_date", todayUtc)
+        .maybeSingle();
+
+      if (usedToday) {
+        return NextResponse.json(
+          {
+            error: "trial_daily_limit",
+            message: "Trial includes one optimization per day (UTC). Come back tomorrow or upgrade for unlimited runs.",
+          },
+          { status: 403 }
+        );
+      }
     }
 
     const { resumeText: rawResume, jobDescription: rawJD, jobTitle: userJobTitle, uploadId } =
@@ -233,13 +264,6 @@ ${JSON_INSTRUCTION}`;
     const st = resumeTemplateIdSchema.safeParse(suggested);
     if (!st.success) suggested = "classic";
 
-    if (profile?.subscription_status !== "active") {
-      await supabase
-        .from("user_profiles")
-        .update({ trial_used: true, updated_at: new Date().toISOString() })
-        .eq("user_id", user.id);
-    }
-
     /** Only link uploads that exist and belong to this user (avoids FK failures misread as RLS). */
     let resolvedUploadId: string | null = null;
     if (typeof uploadId === "string" && uploadId.length > 0) {
@@ -323,6 +347,17 @@ ${JSON_INSTRUCTION}`;
         },
         { status: 500 }
       );
+    }
+
+    if (subStatus === "trialing" && admin) {
+      const todayUtc = new Date().toISOString().slice(0, 10);
+      const { error: trialInsErr } = await admin.from("trial_daily_optimizations").insert({
+        user_id: user.id,
+        usage_date: todayUtc,
+      });
+      if (trialInsErr && trialInsErr.code !== "23505") {
+        console.error("trial_daily_optimizations insert:", trialInsErr.message);
+      }
     }
 
     revalidatePath("/dashboard");

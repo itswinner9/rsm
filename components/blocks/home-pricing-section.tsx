@@ -7,7 +7,7 @@ import { CheckCircle, Crown, Zap, ArrowRight, Loader2, Sparkles } from "lucide-r
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { startPolarCheckout } from "@/lib/polar/startCheckout";
+import { startStripeCheckout } from "@/lib/stripe/startCheckout";
 import {
   homePricingHero,
   pricingTierOrder,
@@ -23,13 +23,13 @@ function TierIcon({ icon }: { icon: PricingTierDefinition["icon"] }) {
 }
 
 export function HomePricingSection() {
-  const [loading, setLoading] = useState<null | "pro" | "recruiting">(null);
+  const [loading, setLoading] = useState<null | "month" | "year">(null);
   const { toast } = useToast();
 
-  const handleUpgrade = async (plan: "pro" | "recruiting") => {
+  const handleUpgrade = async (plan: "month" | "year") => {
     setLoading(plan);
     try {
-      const { ok, error } = await startPolarCheckout(plan);
+      const { ok, error } = await startStripeCheckout(plan);
       if (!ok) {
         toast({
           title: "Checkout unavailable",
@@ -115,8 +115,8 @@ export function HomePricingSection() {
                     className={cn(
                       "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
                       tier.id === "starter" && "bg-muted border border-border",
-                      tier.id === "flex" && "bg-amber-500/10 border border-amber-500/20",
-                      tier.id === "searchPass" && "bg-primary/10 border border-primary/20"
+                      tier.id === "monthly" && "bg-amber-500/10 border border-amber-500/20",
+                      tier.id === "yearly" && "bg-primary/10 border border-primary/20"
                     )}
                   >
                     <TierIcon icon={tier.icon} />
@@ -167,10 +167,10 @@ export function HomePricingSection() {
                     )}
                   </Button>
                 ) : null}
-                {tier.id === "flex" ? (
-                  <p className="text-center text-muted-foreground/50 text-xs mt-3">Polar checkout · cancel anytime</p>
-                ) : tier.id === "searchPass" ? (
-                  <p className="text-center text-muted-foreground/50 text-xs mt-3">Billed every six months</p>
+                {tier.id === "monthly" ? (
+                  <p className="text-center text-muted-foreground/50 text-xs mt-3">Stripe · cancel anytime</p>
+                ) : tier.id === "yearly" ? (
+                  <p className="text-center text-muted-foreground/50 text-xs mt-3">Billed yearly in CAD</p>
                 ) : null}
               </motion.div>
             );

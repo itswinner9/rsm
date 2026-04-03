@@ -9,7 +9,7 @@ import { motion } from "framer-motion";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { cn } from "@/lib/utils";
-import { startPolarCheckout } from "@/lib/polar/startCheckout";
+import { startStripeCheckout } from "@/lib/stripe/startCheckout";
 import {
   pricingHero,
   pricingFaqs,
@@ -28,18 +28,18 @@ function TierIcon({ icon }: { icon: PricingTierDefinition["icon"] }) {
 
 function iconWrapClass(tier: PricingTierDefinition) {
   if (tier.id === "starter") return "bg-muted border border-border";
-  if (tier.id === "flex") return "bg-amber-500/10 border border-amber-500/20";
+  if (tier.id === "monthly") return "bg-amber-500/10 border border-amber-500/20";
   return "bg-primary/10 border border-primary/20";
 }
 
 export default function PricingPage() {
-  const [loadingPlan, setLoadingPlan] = useState<null | "pro" | "recruiting">(null);
+  const [loadingPlan, setLoadingPlan] = useState<null | "month" | "year">(null);
   const { toast } = useToast();
 
-  const handleUpgrade = async (plan: "pro" | "recruiting") => {
+  const handleUpgrade = async (plan: "month" | "year") => {
     setLoadingPlan(plan);
     try {
-      const { ok, error } = await startPolarCheckout(plan);
+      const { ok, error } = await startStripeCheckout(plan);
       if (!ok) {
         toast({
           title: "Checkout unavailable",

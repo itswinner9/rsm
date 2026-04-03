@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
-import { syncPolarSubscriptionForUser } from "@/lib/polar/syncSubscription";
+import { syncStripeSubscriptionForUser } from "@/lib/stripe/syncSubscription";
+import { hasPaidPlanAccess } from "@/lib/subscription/access";
 import { siteDescription, openGraphDefaults } from "@/lib/site-metadata";
 
 export const metadata: Metadata = {
@@ -24,8 +25,8 @@ export default async function BuilderLayout({ children }: { children: React.Reac
       .select("subscription_status")
       .eq("user_id", user.id)
       .maybeSingle();
-    if (row?.subscription_status !== "active") {
-      await syncPolarSubscriptionForUser(user.id);
+    if (!row || !hasPaidPlanAccess(row.subscription_status)) {
+      await syncStripeSubscriptionForUser(user.id);
     }
   }
   return <>{children}</>;

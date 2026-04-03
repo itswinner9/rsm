@@ -2,6 +2,8 @@
 
 Confirmation emails and OAuth redirects that show `http://localhost:3000` are almost always fixed in the **Supabase project** and **Google Cloud Console**, not only in app env vars.
 
+Set **`NEXT_PUBLIC_APP_URL`** in deployment to your production origin (see [Environment variables](environment-variables.md)); **Supabase Site URL** should match that origin (no trailing slash).
+
 ## Supabase — URL configuration
 
 1. Open [Supabase Dashboard](https://supabase.com/dashboard) → your project → **Authentication** → **URL Configuration**.

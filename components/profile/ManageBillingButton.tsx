@@ -12,7 +12,7 @@ export function ManageBillingButton() {
   const openPortal = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/polar/portal", { method: "POST" });
+      const res = await fetch("/api/stripe/portal", { method: "POST" });
       const data = await res.json();
       if (!res.ok) {
         toast({

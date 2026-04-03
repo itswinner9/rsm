@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,8 @@ import { AuthPageShell } from "@/components/layout/auth-page-shell";
 import { GoogleOAuthButton } from "@/components/auth/google-oauth-button";
 import { AuthEmailDivider } from "@/components/auth/auth-email-divider";
 import { authInputClass } from "@/components/auth/auth-input-class";
+import { AuthLoadingOverlay } from "@/components/auth/auth-loading-overlay";
+import { VerifyEmailPanel } from "@/components/auth/verify-email-panel";
 import { SITE_NAME } from "@/lib/site-nav";
 import { getAuthCallbackUrl } from "@/lib/auth-redirect";
 
@@ -27,12 +29,22 @@ function readSearchParams() {
   return { redirect, authError: params.get("error") };
 }
 
+function isEmailNotConfirmedError(error: { code?: string; message?: string } | null): boolean {
+  if (!error) return false;
+  if (error.code === "email_not_confirmed" || error.code === "provider_email_needs_verification") {
+    return true;
+  }
+  const m = (error.message ?? "").toLowerCase();
+  return m.includes("email not confirmed") || m.includes("not confirmed");
+}
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [showVerifyPanel, setShowVerifyPanel] = useState(false);
   const [redirect, setRedirect] = useState("/dashboard");
   const { toast } = useToast();
   const router = useRouter();
@@ -59,6 +71,7 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setShowVerifyPanel(false);
     try {
       const signInPromise = supabase.auth.signInWithPassword({
         email: email.trim(),
@@ -70,6 +83,10 @@ export default function LoginPage() {
       const { data, error } = await Promise.race([signInPromise, timeoutPromise]);
 
       if (error) {
+        if (isEmailNotConfirmedError(error)) {
+          setShowVerifyPanel(true);
+          return;
+        }
         toast({ title: "Login failed", description: error.message, variant: "destructive" });
         return;
       }
@@ -108,9 +125,11 @@ export default function LoginPage() {
     }
   };
 
+  const busy = isLoading || isGoogleLoading;
+
   return (
     <AuthPageShell>
-      <div className="w-full max-w-[400px] mx-auto">
+      <div className="mx-auto w-full max-w-[400px]">
         <header className="mb-8 text-center">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Sign in</p>
           <h1 className="mt-2 text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
@@ -121,7 +140,16 @@ export default function LoginPage() {
           </p>
         </header>
 
-        <div className="rounded-2xl border border-border bg-card p-7 shadow-sm sm:p-8">
+        <div
+          className="relative min-h-[320px] rounded-2xl border border-border bg-card p-7 shadow-sm sm:min-h-[340px] sm:p-8"
+          aria-busy={busy}
+        >
+          {busy ? (
+            <AuthLoadingOverlay mode={isGoogleLoading ? "google" : "password"} />
+          ) : null}
+
+          {showVerifyPanel ? <VerifyEmailPanel email={email} /> : null}
+
           <GoogleOAuthButton loading={isGoogleLoading} onClick={handleGoogleLogin} />
           <AuthEmailDivider label="Or with email" />
 
@@ -135,10 +163,14 @@ export default function LoginPage() {
                 type="email"
                 placeholder="you@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setShowVerifyPanel(false);
+                }}
                 required
                 autoComplete="email"
                 className={authInputClass}
+                disabled={busy}
               />
             </div>
             <div className="space-y-2">
@@ -155,30 +187,21 @@ export default function LoginPage() {
                   required
                   autoComplete="current-password"
                   className={`${authInputClass} pr-11`}
+                  disabled={busy}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                   aria-label={showPassword ? "Hide password" : "Show password"}
+                  disabled={busy}
                 >
                   {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
               </div>
             </div>
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="mt-2 h-11 w-full rounded-full text-[15px] font-medium"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 size-4 animate-spin" />
-                  Signing in…
-                </>
-              ) : (
-                "Sign in"
-              )}
+            <Button type="submit" disabled={busy} className="mt-2 h-11 w-full rounded-full text-[15px] font-medium">
+              Sign in
             </Button>
           </form>
         </div>

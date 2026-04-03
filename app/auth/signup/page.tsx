@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Eye, EyeOff, Loader2, CheckCircle } from "lucide-react";
+import { Eye, EyeOff, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +14,8 @@ import { AuthEmailDivider } from "@/components/auth/auth-email-divider";
 import { authInputClass } from "@/components/auth/auth-input-class";
 import { SITE_NAME } from "@/lib/site-nav";
 import { getAuthCallbackUrl } from "@/lib/auth-redirect";
+import { AuthLoadingOverlay } from "@/components/auth/auth-loading-overlay";
+import { ResendConfirmationEmailButton } from "@/components/auth/verify-email-panel";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -129,6 +131,12 @@ export default function SignupPage() {
   };
 
   if (success) {
+    const steps = [
+      "Open the email from Resumify (check spam if needed).",
+      "Click the confirmation link to verify your address.",
+      "Return here and sign in to open the builder.",
+    ];
+
     return (
       <AuthPageShell>
         <div className="mx-auto w-full max-w-[400px] text-center">
@@ -143,13 +151,30 @@ export default function SignupPage() {
               Check your inbox
             </h2>
             <p className="mx-auto mt-3 max-w-sm text-pretty text-sm leading-relaxed text-muted-foreground">
-              We sent a link to <span className="font-medium text-foreground">{email}</span>. Open it to activate your
-              account.
+              We sent a confirmation link to{" "}
+              <span className="font-medium text-foreground">{email}</span>. Follow the steps below, then sign in.
             </p>
+
+            <ol className="mx-auto mt-6 max-w-sm space-y-3 text-left">
+              {steps.map((line, i) => (
+                <li key={i} className="flex gap-3 text-sm leading-relaxed text-muted-foreground">
+                  <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-foreground">
+                    {i + 1}
+                  </span>
+                  <span className="pt-0.5">{line}</span>
+                </li>
+              ))}
+            </ol>
+
+            <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+              <ResendConfirmationEmailButton email={email} label="Resend confirmation email" />
+            </div>
+
             <p className="mx-auto mt-5 max-w-sm text-left text-xs leading-relaxed text-muted-foreground">
-              No email? Check spam. If it never arrives, your project may need SMTP configured in the Supabase dashboard
-              (Authentication → Emails), or turn off &quot;Confirm email&quot; for local development.
+              No email? Check spam. For production, configure SMTP in Supabase (Authentication → Emails) so messages
+              deliver reliably.
             </p>
+
             <Button asChild variant="outline" className="mt-8 h-11 rounded-full border-border px-8 font-medium">
               <Link href="/auth/login">Back to sign in</Link>
             </Button>
@@ -178,7 +203,14 @@ export default function SignupPage() {
           </Link>
         </header>
 
-        <div className="rounded-2xl border border-border bg-card p-7 shadow-sm sm:p-8">
+        <div
+          className="relative min-h-[380px] rounded-2xl border border-border bg-card p-7 shadow-sm sm:min-h-[400px] sm:p-8"
+          aria-busy={isLoading || isGoogleLoading}
+        >
+          {isLoading || isGoogleLoading ? (
+            <AuthLoadingOverlay mode={isGoogleLoading ? "google" : "signup"} />
+          ) : null}
+
           <GoogleOAuthButton loading={isGoogleLoading} onClick={handleGoogleSignup} />
           <AuthEmailDivider label="Or with email" />
 
@@ -196,6 +228,7 @@ export default function SignupPage() {
                 required
                 autoComplete="email"
                 className={authInputClass}
+                disabled={isLoading || isGoogleLoading}
               />
             </div>
 
@@ -214,12 +247,14 @@ export default function SignupPage() {
                   minLength={8}
                   autoComplete="new-password"
                   className={`${authInputClass} pr-11`}
+                  disabled={isLoading || isGoogleLoading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                   aria-label={showPassword ? "Hide password" : "Show password"}
+                  disabled={isLoading || isGoogleLoading}
                 >
                   {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
@@ -228,17 +263,10 @@ export default function SignupPage() {
 
             <Button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || isGoogleLoading}
               className="mt-2 h-11 w-full rounded-full text-[15px] font-medium"
             >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 size-4 animate-spin" />
-                  Creating account…
-                </>
-              ) : (
-                "Create free account"
-              )}
+              Create free account
             </Button>
           </form>
 

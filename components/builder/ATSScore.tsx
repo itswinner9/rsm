@@ -27,8 +27,8 @@ interface ATSScoreProps {
   suggestions?: string[];
   /** AI rewrite bullets (e.g. formatting, privacy, verbs) */
   improvements?: string[];
-  /** Paid users see export-focused hint; others see soft upgrade line */
-  isSubscribed?: boolean;
+  /** Active paid subscription (unlimited runs); trialing users see trial-aware copy */
+  isPaidActive?: boolean;
   /** e.g. "Classic ATS Professional" — shown as template exploration hint */
   suggestedTemplateLabel?: string;
 }
@@ -105,7 +105,7 @@ export function ATSScore({
   weaknesses = [],
   suggestions = [],
   improvements = [],
-  isSubscribed = false,
+  isPaidActive = false,
   suggestedTemplateLabel,
 }: ATSScoreProps) {
   const orig = clampScore(originalScore);
@@ -167,7 +167,7 @@ export function ATSScore({
         <p className="text-[11px] text-muted-foreground leading-relaxed rounded-lg border border-border bg-muted/20 px-3 py-2">
           Scores reflect keyword overlap with the posting—not resume quality alone. A drop can mean we avoided stuffing
           keywords you didn&apos;t earn. Review suggestions and exports; you can re-run from the builder with a tweaked JD
-          anytime{isSubscribed ? "" : " (Flex or Search Pass for unlimited runs)."}.
+          anytime{isPaidActive ? "" : " (active subscription for unlimited same-day runs)."}.
         </p>
       ) : null}
 
@@ -311,13 +311,14 @@ export function ATSScore({
         </div>
       )}
 
-      {!isSubscribed && (
+      {!isPaidActive && (
         <div className="rounded-xl border border-border bg-card/30 px-3 py-3">
           <p className="text-[11px] text-muted-foreground leading-relaxed mb-2">
-            Want unlimited AI rewrites for every role? Flex or Search Pass unlocks endless optimizations and exports.
+            On trial: one optimization per UTC day. After billing starts, runs are unlimited while your subscription is
+            active—or manage your plan anytime.
           </p>
           <Button asChild size="sm" variant="outline" className="w-full rounded-full text-xs h-9 border-border">
-            <Link href="/pricing">View plans</Link>
+            <Link href="/profile">Billing &amp; plan</Link>
           </Button>
         </div>
       )}

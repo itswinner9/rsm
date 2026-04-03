@@ -14,7 +14,7 @@ export async function GET() {
 
   const { data: profile, error } = await supabase
     .from("user_profiles")
-    .select("trial_used, subscription_status")
+    .select("subscription_status, subscription_trial_end")
     .eq("user_id", user.id)
     .single();
 
@@ -23,7 +23,7 @@ export async function GET() {
   }
 
   return NextResponse.json({
-    trial_used: profile.trial_used,
     subscription_status: profile.subscription_status,
+    subscription_trial_end: profile.subscription_trial_end,
   });
 }

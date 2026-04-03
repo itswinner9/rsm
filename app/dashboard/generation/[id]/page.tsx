@@ -5,7 +5,8 @@ import { ChevronLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/layout/app-shell";
 import { GenerationDetail } from "@/components/dashboard/GenerationDetail";
-import { syncPolarSubscriptionForUser } from "@/lib/polar/syncSubscription";
+import { syncStripeSubscriptionForUser } from "@/lib/stripe/syncSubscription";
+import { hasPaidPlanAccess } from "@/lib/subscription/access";
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   const supabase = createClient();
@@ -31,8 +32,8 @@ async function getData(id: string) {
   if (!user) redirect("/auth/login");
 
   let profileRes = await supabase.from("user_profiles").select("*").eq("user_id", user.id).single();
-  if (!profileRes.data || profileRes.data.subscription_status !== "active") {
-    await syncPolarSubscriptionForUser(user.id);
+  if (!profileRes.data || !hasPaidPlanAccess(profileRes.data.subscription_status)) {
+    await syncStripeSubscriptionForUser(user.id);
     profileRes = await supabase.from("user_profiles").select("*").eq("user_id", user.id).single();
   }
 
@@ -54,7 +55,7 @@ async function getData(id: string) {
 
 export default async function GenerationPage({ params }: { params: { id: string } }) {
   const { user, profile, gen } = await getData(params.id);
-  const isSubscribed = profile?.subscription_status === "active";
+  const isSubscribed = hasPaidPlanAccess(profile?.subscription_status);
 
   return (
     <AppShell userEmail={user.email} isPro={isSubscribed}>

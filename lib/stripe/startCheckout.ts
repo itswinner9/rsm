@@ -1,16 +1,16 @@
 /**
- * Start Polar checkout for Pro or Recruiting. Redirects browser on success.
+ * Start Stripe Checkout for monthly or yearly plan (3-day trial, card required).
  */
-export async function startPolarCheckout(
-  plan: "pro" | "recruiting"
+export async function startStripeCheckout(
+  plan: "month" | "year"
 ): Promise<{ ok: boolean; error?: string }> {
   try {
-    const res = await fetch("/api/polar/checkout", {
+    const res = await fetch("/api/stripe/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ plan }),
     });
-    const data = await res.json();
+    const data = (await res.json()) as { url?: string; error?: string };
     if (res.status === 401) {
       window.location.href = "/auth/signup";
       return { ok: true };
