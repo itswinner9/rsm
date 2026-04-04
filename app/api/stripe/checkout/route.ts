@@ -1,11 +1,30 @@
 import { NextResponse } from "next/server";
+import type Stripe from "stripe";
 import { createClient } from "@/lib/supabase/server";
-import { getAppOrigin, getStripe } from "@/lib/stripe/server";
+import { createServiceRoleClient } from "@/lib/supabase/admin";
+import { buildSubscriptionLineItems } from "@/lib/stripe/checkoutLineItems";
+import { mapStripeCheckoutApiError } from "@/lib/stripe/priceId";
+import { tryResolveLineItemsFromProduct } from "@/lib/stripe/resolvePriceFromProduct";
+import { extractStripeErrorMessage, getAppOrigin, getStripe } from "@/lib/stripe/server";
+import {
+  summarizeCheckoutLineItems,
+  validateCheckoutLineItemsForStripe,
+} from "@/lib/stripe/validateCheckoutLineItems";
 
 const TRIAL_DAYS = 3;
 
 export async function POST(request: Request) {
   try {
+    if (!process.env.STRIPE_SECRET_KEY?.trim()) {
+      return NextResponse.json(
+        {
+          error:
+            "Billing is not configured. Set STRIPE_SECRET_KEY in your deployment environment (e.g. Vercel → Environment Variables) and redeploy.",
+        },
+        { status: 503 }
+      );
+    }
+
     const supabase = createClient();
     const {
       data: { user },
@@ -17,22 +36,22 @@ export async function POST(request: Request) {
     const body = (await request.json().catch(() => ({}))) as { plan?: string };
     const plan = body.plan === "year" ? "year" : "month";
 
-    const priceId =
-      plan === "year"
-        ? process.env.STRIPE_PRICE_YEARLY_CAD?.trim()
-        : process.env.STRIPE_PRICE_MONTHLY_CAD?.trim();
-
-    if (!priceId) {
-      return NextResponse.json(
-        {
-          error:
-            plan === "year"
-              ? "Set STRIPE_PRICE_YEARLY_CAD in environment (Stripe Dashboard → Products → Price id)."
-              : "Set STRIPE_PRICE_MONTHLY_CAD in environment (Stripe Dashboard → Products → Price id).",
-        },
-        { status: 500 }
-      );
+    const stripe = getStripe();
+    const fromProduct = await tryResolveLineItemsFromProduct(plan, process.env, stripe);
+    const lineItemsResult = fromProduct ?? buildSubscriptionLineItems(plan, process.env);
+    if (!lineItemsResult.ok) {
+      return NextResponse.json({ error: lineItemsResult.error }, { status: 500 });
     }
+    const { line_items: lineItems, usedInlineFallback } = lineItemsResult;
+
+    const lineItemsError = validateCheckoutLineItemsForStripe(lineItems);
+    if (lineItemsError) {
+      console.error("[stripe/checkout] line_items validation failed:", lineItemsError, summarizeCheckoutLineItems(lineItems));
+      return NextResponse.json({ error: lineItemsError }, { status: 500 });
+    }
+
+    const pricingMode = usedInlineFallback ? "inline_price_data" : "catalog_price_id";
+    console.info(`[stripe/checkout] plan=${plan} mode=${pricingMode} items=${summarizeCheckoutLineItems(lineItems)}`);
 
     const { data: profile } = await supabase
       .from("user_profiles")
@@ -41,15 +60,11 @@ export async function POST(request: Request) {
       .maybeSingle();
 
     const origin = getAppOrigin();
-    const stripe = getStripe();
 
-    const session = await stripe.checkout.sessions.create({
+    const base: Stripe.Checkout.SessionCreateParams = {
       mode: "subscription",
       client_reference_id: user.id,
-      ...(profile?.stripe_customer_id
-        ? { customer: profile.stripe_customer_id }
-        : { customer_email: user.email }),
-      line_items: [{ price: priceId, quantity: 1 }],
+      line_items: lineItems,
       success_url: `${origin}/profile?checkout=success`,
       cancel_url: `${origin}/pricing?checkout=canceled`,
       allow_promotion_codes: true,
@@ -60,16 +75,45 @@ export async function POST(request: Request) {
       metadata: {
         supabase_user_id: user.id,
       },
-    });
+    };
+
+    const customerId = profile?.stripe_customer_id?.trim();
+    let session: Stripe.Checkout.Session;
+
+    try {
+      session = await stripe.checkout.sessions.create(
+        customerId
+          ? { ...base, customer: customerId }
+          : { ...base, customer_email: user.email }
+      );
+    } catch (first: unknown) {
+      const msg = extractStripeErrorMessage(first);
+      const isMissingCustomer = customerId && /no such customer/i.test(msg);
+      if (!isMissingCustomer) {
+        throw first;
+      }
+      const admin = createServiceRoleClient();
+      if (admin) {
+        await admin
+          .from("user_profiles")
+          .update({ stripe_customer_id: null, updated_at: new Date().toISOString() })
+          .eq("user_id", user.id);
+      }
+      session = await stripe.checkout.sessions.create({
+        ...base,
+        customer_email: user.email,
+      });
+    }
 
     if (!session.url) {
-      return NextResponse.json({ error: "No session URL from Stripe" }, { status: 500 });
+      return NextResponse.json({ error: "No checkout URL from Stripe" }, { status: 500 });
     }
 
     return NextResponse.json({ url: session.url });
   } catch (e) {
     console.error("Stripe checkout error:", e);
-    const msg = e instanceof Error ? e.message : "Checkout failed";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    const raw = extractStripeErrorMessage(e);
+    const friendly = mapStripeCheckoutApiError(raw);
+    return NextResponse.json({ error: friendly }, { status: 500 });
   }
 }

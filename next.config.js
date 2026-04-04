@@ -1,10 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  /** Reduces dev-only "Cannot find module './NNN.js'" when webpack filesystem cache gets out of sync. */
-  webpack: (config, { dev }) => {
-    if (dev) config.cache = false;
-    return config;
-  },
   images: {
     domains: [
       "images.unsplash.com",

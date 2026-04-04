@@ -3,8 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3000",
-    "dev:clean": "rm -rf .next && next dev -p 3000",
+    "dev": "next dev -p 3002",
+    "dev:free": "bash -c 'pids=$(lsof -t -iTCP:3002 -sTCP:LISTEN 2>/dev/null); [ -n \"$pids\" ] && kill $pids && echo \"Freed port 3002\" || echo \"Nothing was listening on 3002\"'",
+    "dev:clean": "rm -rf .next node_modules/.cache && next dev -p 3002",
+    "clean": "rm -rf .next node_modules/.cache",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -40,7 +42,6 @@
     "jspdf": "^2.5.1",
     "lucide-react": "^0.344.0",
     "mammoth": "^1.7.0",
-    "motion": "^12.38.0",
     "next": "14.2.35",
     "openai": "^6.33.0",
     "pdf-lib": "^1.17.1",
@@ -50,7 +51,6 @@
     "react": "^18",
     "react-dom": "^18",
     "react-dropzone": "^14.2.3",
-    "react-hot-toast": "^2.4.1",
     "react-use-measure": "^2.1.7",
     "stripe": "^17.7.0",
     "tailwind-merge": "^2.2.1",

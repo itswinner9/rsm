@@ -13,6 +13,17 @@ export function getStripe(): Stripe {
   return _stripe;
 }
 
+/** Stripe Node SDK errors may nest the message on `raw`. */
+export function extractStripeErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === "object" && err !== null) {
+    const o = err as { message?: unknown; raw?: { message?: unknown } };
+    if (typeof o.message === "string" && o.message.length > 0) return o.message;
+    if (o.raw && typeof o.raw.message === "string") return o.raw.message;
+  }
+  return typeof err === "string" ? err : "Checkout failed";
+}
+
 export function getAppOrigin(): string {
   const fromEnv = process.env.NEXT_PUBLIC_APP_URL?.trim().replace(/\/$/, "");
   if (fromEnv?.startsWith("http")) return fromEnv;

@@ -54,8 +54,9 @@ export const tierDefinitions: Record<PricingTierDefinition["id"], PricingTierDef
     id: "starter",
     displayName: "How it works",
     tagline: "Card required — trial, then your chosen plan",
-    priceAmount: "3-day",
-    priceSuffix: "trial",
+    /** Non-breaking space avoids "3-daytrial" if styles collapse normal spaces. */
+    priceAmount: "3-day\u00a0trial",
+    priceSuffix: "",
     featuresDetailed: [
       "Add a payment method to start (no charge until the trial ends)",
       "During trial: 1 optimization per calendar day (UTC)",

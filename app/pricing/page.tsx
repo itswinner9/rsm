@@ -42,9 +42,10 @@ export default function PricingPage() {
       const { ok, error } = await startStripeCheckout(plan);
       if (!ok) {
         toast({
-          title: "Checkout unavailable",
+          title: "Checkout couldn’t start",
           description: error || "Please try again.",
           variant: "destructive",
+          duration: error && error.length > 120 ? 14_000 : 6_000,
         });
       }
     } finally {
@@ -131,8 +132,14 @@ export default function PricingPage() {
                   <h2 className="text-xl font-bold text-foreground">{tier.displayName}</h2>
                   <p className="text-muted-foreground text-sm mt-1 mb-6">{tier.tagline}</p>
                   <div className="mb-6">
-                    <span className="text-4xl font-bold text-foreground">{tier.priceAmount}</span>
-                    <span className="text-muted-foreground ml-2 text-sm">{tier.priceSuffix}</span>
+                    {tier.priceSuffix ? (
+                      <>
+                        <span className="text-4xl font-bold text-foreground">{tier.priceAmount}</span>
+                        <span className="text-muted-foreground ml-2 text-sm">{tier.priceSuffix}</span>
+                      </>
+                    ) : (
+                      <span className="text-4xl font-bold text-foreground">{tier.priceAmount}</span>
+                    )}
                   </div>
                   <ul className="space-y-3 mb-8 flex-1">
                     {tier.featuresDetailed.map((f) => (

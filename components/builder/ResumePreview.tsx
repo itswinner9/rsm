@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { X, Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { stripHtmlFromText } from "@/lib/resume/sanitizeResumeText";
 
 interface ResumeVersion {
   template: string;
@@ -20,7 +20,8 @@ interface ResumePreviewProps {
 }
 
 function formatResumeContent(content: string) {
-  const lines = content.split("\n");
+  const plain = stripHtmlFromText(content);
+  const lines = plain.split("\n");
   const elements: React.ReactNode[] = [];
 
   lines.forEach((line, i) => {

@@ -32,9 +32,10 @@ export function HomePricingSection() {
       const { ok, error } = await startStripeCheckout(plan);
       if (!ok) {
         toast({
-          title: "Checkout unavailable",
+          title: "Checkout couldn’t start",
           description: error || "Please try again.",
           variant: "destructive",
+          duration: error && error.length > 120 ? 14_000 : 6_000,
         });
       }
     } finally {
@@ -127,8 +128,14 @@ export function HomePricingSection() {
                   </div>
                 </div>
                 <div className="mb-6">
-                  <span className="text-foreground text-4xl font-bold">{tier.priceAmount}</span>
-                  <span className="text-muted-foreground ml-2 text-sm">{tier.priceSuffix}</span>
+                  {tier.priceSuffix ? (
+                    <>
+                      <span className="text-foreground text-4xl font-bold">{tier.priceAmount}</span>
+                      <span className="text-muted-foreground ml-2 text-sm">{tier.priceSuffix}</span>
+                    </>
+                  ) : (
+                    <span className="text-foreground text-4xl font-bold">{tier.priceAmount}</span>
+                  )}
                 </div>
                 <ul className="space-y-3 mb-8 flex-1">
                   {tier.featuresHome.map((f) => (
