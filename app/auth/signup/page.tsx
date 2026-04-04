@@ -16,6 +16,8 @@ import { SITE_NAME } from "@/lib/site-nav";
 import { getAuthCallbackUrl } from "@/lib/auth-redirect";
 import { AuthLoadingOverlay } from "@/components/auth/auth-loading-overlay";
 import { ResendConfirmationEmailButton } from "@/components/auth/verify-email-panel";
+import { getVisitorId } from "@/lib/fingerprint/getVisitorId";
+import { FP_OAUTH_PENDING_KEY, fpRegisteredStorageKey } from "@/lib/auth/fingerprint-storage";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -32,6 +34,28 @@ export default function SignupPage() {
     setIsLoading(true);
 
     try {
+      const visitorId = await getVisitorId();
+      if (visitorId) {
+        const guard = await fetch("/api/auth/check-signup-device", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({ visitorId }),
+        });
+        if (!guard.ok) {
+          const j = (await guard.json().catch(() => ({}))) as { message?: string; error?: string };
+          toast({
+            title: "Signup not allowed from this device",
+            description:
+              j.message ||
+              "Use your existing account, or contact support if you need a new workspace.",
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
+      }
+
       const check = await fetch("/api/auth/validate-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -66,6 +90,20 @@ export default function SignupPage() {
           variant: "destructive",
         });
         return;
+      }
+
+      if (data.session?.user && visitorId) {
+        await fetch("/api/auth/register-device", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({ visitorId }),
+        });
+        try {
+          localStorage.setItem(fpRegisteredStorageKey(data.session.user.id), "1");
+        } catch {
+          /* private mode */
+        }
       }
 
       if (data.session) {
@@ -106,6 +144,29 @@ export default function SignupPage() {
   const handleGoogleSignup = async () => {
     setIsGoogleLoading(true);
     try {
+      const visitorId = await getVisitorId();
+      if (visitorId) {
+        const guard = await fetch("/api/auth/check-signup-device", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({ visitorId }),
+        });
+        if (!guard.ok) {
+          const j = (await guard.json().catch(() => ({}))) as { message?: string };
+          toast({
+            title: "Signup not allowed from this device",
+            description:
+              j.message ||
+              "Use your existing account, or contact support if you need a new workspace.",
+            variant: "destructive",
+          });
+          setIsGoogleLoading(false);
+          return;
+        }
+        sessionStorage.setItem(FP_OAUTH_PENDING_KEY, visitorId);
+      }
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
@@ -266,12 +327,13 @@ export default function SignupPage() {
               disabled={isLoading || isGoogleLoading}
               className="mt-2 h-11 w-full rounded-full text-[15px] font-medium"
             >
-              Create free account
+              Create account
             </Button>
           </form>
 
           <p className="mt-5 text-center text-[11px] leading-relaxed text-muted-foreground">
-            By continuing, you agree to our terms and privacy policy.
+            By continuing, you agree to our terms and privacy policy. A lightweight device signal helps us prevent
+            abuse; paid plans and trials stay tied to your account.
           </p>
         </div>
 

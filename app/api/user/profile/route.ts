@@ -12,18 +12,14 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data: profile, error } = await supabase
+  const { data: profile } = await supabase
     .from("user_profiles")
     .select("subscription_status, subscription_trial_end")
     .eq("user_id", user.id)
-    .single();
-
-  if (error) {
-    return NextResponse.json({ error: "Profile not found" }, { status: 404 });
-  }
+    .maybeSingle();
 
   return NextResponse.json({
-    subscription_status: profile.subscription_status,
-    subscription_trial_end: profile.subscription_trial_end,
+    subscription_status: profile?.subscription_status ?? null,
+    subscription_trial_end: profile?.subscription_trial_end ?? null,
   });
 }

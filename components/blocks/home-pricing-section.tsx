@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { startStripeCheckout } from "@/lib/stripe/startCheckout";
 import {
   homePricingHero,
+  homePricingHeroProfileLoading,
   pricingHeroLoggedInNoSub,
   pricingHeroSubscriberLine,
   pricingTierOrder,
@@ -49,11 +50,13 @@ export function HomePricingSection() {
   };
 
   const heroSubtitle =
-    !subscription.loading && subscription.isLoggedIn && subscription.hasPaidAccess
-      ? pricingHeroSubscriberLine(subscription.isTrialing, subscription.trialEndLabel)
-      : !subscription.loading && subscription.isLoggedIn && !subscription.hasPaidAccess
-        ? pricingHeroLoggedInNoSub
-        : homePricingHero.subtitle;
+    !subscription.authReady || (subscription.isLoggedIn && !subscription.profileReady)
+      ? homePricingHeroProfileLoading
+      : subscription.isLoggedIn && subscription.hasPaidAccess
+        ? pricingHeroSubscriberLine(subscription.isTrialing, subscription.trialEndLabel)
+        : subscription.isLoggedIn && !subscription.hasPaidAccess
+          ? pricingHeroLoggedInNoSub
+          : homePricingHero.subtitle;
 
   return (
     <section id="pricing" className="bg-background py-24 px-4 sm:px-6 lg:px-8 border-t border-border/50">
@@ -170,13 +173,13 @@ export function HomePricingSection() {
                   isLoggedIn={subscription.isLoggedIn}
                   hasPaidAccess={subscription.hasPaidAccess}
                 />
-                {tier.id === "monthly" && !subscription.hasPaidAccess ? (
+                {tier.id === "monthly" && subscription.profileReady && !subscription.hasPaidAccess ? (
                   <p className="text-center text-muted-foreground/50 text-xs mt-3">Stripe · cancel anytime</p>
-                ) : tier.id === "yearly" && !subscription.hasPaidAccess ? (
+                ) : tier.id === "yearly" && subscription.profileReady && !subscription.hasPaidAccess ? (
                   <p className="text-center text-muted-foreground/50 text-xs mt-3">Billed yearly in CAD</p>
-                ) : tier.id === "monthly" && subscription.hasPaidAccess ? (
+                ) : tier.id === "monthly" && subscription.profileReady && subscription.hasPaidAccess ? (
                   <p className="text-center text-muted-foreground/50 text-xs mt-3">Change or cancel in the billing portal.</p>
-                ) : tier.id === "yearly" && subscription.hasPaidAccess ? (
+                ) : tier.id === "yearly" && subscription.profileReady && subscription.hasPaidAccess ? (
                   <p className="text-center text-muted-foreground/50 text-xs mt-3">Change or cancel in the billing portal.</p>
                 ) : null}
               </motion.div>

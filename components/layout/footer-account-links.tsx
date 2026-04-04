@@ -52,7 +52,7 @@ export function FooterAccountLinks() {
   return (
     <ul className="space-y-3">
       {[
-        { label: "Sign Up Free", href: "/auth/signup" },
+        { label: "Create account", href: "/auth/signup" },
         { label: "Login", href: "/auth/login" },
       ].map((l) => (
         <li key={l.href}>

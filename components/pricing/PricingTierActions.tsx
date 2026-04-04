@@ -17,6 +17,7 @@ type Props = {
   tier: PricingTierDefinition;
   loadingPlan: "month" | "year" | null;
   onCheckout: (plan: "month" | "year") => void;
+  /** True until session is known, or until profile is loaded for a signed-in user. */
   subscriptionLoading: boolean;
   isLoggedIn: boolean;
   hasPaidAccess: boolean;
@@ -34,7 +35,13 @@ export function PricingTierActions({
   const checkoutKey = tier.checkoutPlan;
 
   if (subscriptionLoading) {
-    return <div className="w-full h-10 rounded-xl bg-muted/80 animate-pulse" aria-hidden />;
+    return (
+      <div
+        className="w-full h-10 rounded-xl bg-muted/80 animate-pulse"
+        aria-busy
+        aria-label="Loading account"
+      />
+    );
   }
 
   if (isStarter && tier.signupHref) {

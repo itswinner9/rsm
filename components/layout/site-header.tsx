@@ -25,6 +25,7 @@ const MENU_PANEL_ID = "site-header-nav-panel";
 export function SiteHeader() {
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [scrolled, setScrolled] = React.useState(false);
+  const [authChecked, setAuthChecked] = React.useState(false);
   const [isLoggedIn, setIsLoggedIn] = React.useState(false);
   const pathname = usePathname();
   const supabase = createClient();
@@ -38,11 +39,13 @@ export function SiteHeader() {
   React.useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setIsLoggedIn(!!data.session);
+      setAuthChecked(true);
     });
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsLoggedIn(!!session);
+      setAuthChecked(true);
     });
     return () => subscription.unsubscribe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -126,7 +129,7 @@ export function SiteHeader() {
                 </ul>
               </div>
 
-              {isLoggedIn ? (
+              {authChecked && isLoggedIn ? (
                 <div className="lg:hidden w-full border-t border-border pt-6">
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-3">
                     App
@@ -159,10 +162,19 @@ export function SiteHeader() {
               <div
                 className={cn(
                   "flex w-full flex-col space-y-3 sm:flex-row sm:flex-wrap sm:justify-end sm:gap-2 sm:space-y-0 md:w-fit md:max-w-[min(100%,28rem)] lg:flex-row",
-                  isLoggedIn && "hidden lg:flex"
+                  authChecked && isLoggedIn && "hidden lg:flex"
                 )}
               >
-                {isLoggedIn ? (
+                {!authChecked ? (
+                  <div
+                    className="flex w-full flex-wrap justify-end gap-2 sm:ml-auto"
+                    aria-busy
+                    aria-label="Loading account"
+                  >
+                    <div className="h-9 w-[4.5rem] rounded-md bg-muted/80 animate-pulse shrink-0" />
+                    <div className="h-9 w-[6.5rem] rounded-md bg-muted/80 animate-pulse shrink-0" />
+                  </div>
+                ) : isLoggedIn ? (
                   <>
                     <Button asChild size="sm" className="shrink-0">
                       <Link href={appPrimaryNav.href}>
@@ -199,12 +211,12 @@ export function SiteHeader() {
                     </Button>
                     <Button asChild size="sm" className={cn("shrink-0", scrolled && "lg:hidden")}>
                       <Link href="/auth/signup" onClick={() => setMenuOpen(false)}>
-                        <span>Sign Up Free</span>
+                        <span>Create account</span>
                       </Link>
                     </Button>
                     <Button asChild size="sm" className={cn("shrink-0", scrolled ? "lg:inline-flex" : "hidden")}>
                       <Link href="/auth/signup" onClick={() => setMenuOpen(false)}>
-                        <span>Get Started</span>
+                        <span>Get started</span>
                       </Link>
                     </Button>
                   </>

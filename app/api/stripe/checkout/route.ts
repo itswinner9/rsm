@@ -74,6 +74,7 @@ export async function POST(request: Request) {
 
     const base: Stripe.Checkout.SessionCreateParams = {
       mode: "subscription",
+      payment_method_collection: "always",
       client_reference_id: user.id,
       line_items: lineItems,
       success_url: `${origin}/profile?checkout=success`,

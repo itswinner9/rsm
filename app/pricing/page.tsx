@@ -14,6 +14,7 @@ import {
   pricingFaqs,
   faqSectionTitle,
   pricingHeroLoggedInNoSub,
+  pricingHeroProfileLoading,
   pricingHeroSubscriberLine,
   pricingTierOrder,
   tierDefinitions,
@@ -58,11 +59,13 @@ export default function PricingPage() {
   };
 
   const heroSubtitle =
-    !subscription.loading && subscription.isLoggedIn && subscription.hasPaidAccess
-      ? pricingHeroSubscriberLine(subscription.isTrialing, subscription.trialEndLabel)
-      : !subscription.loading && subscription.isLoggedIn && !subscription.hasPaidAccess
-        ? pricingHeroLoggedInNoSub
-        : pricingHero.subtitle;
+    !subscription.authReady || (subscription.isLoggedIn && !subscription.profileReady)
+      ? pricingHeroProfileLoading
+      : subscription.isLoggedIn && subscription.hasPaidAccess
+        ? pricingHeroSubscriberLine(subscription.isTrialing, subscription.trialEndLabel)
+        : subscription.isLoggedIn && !subscription.hasPaidAccess
+          ? pricingHeroLoggedInNoSub
+          : pricingHero.subtitle;
 
   return (
     <div className="min-h-screen bg-background">
@@ -173,10 +176,13 @@ export default function PricingPage() {
                     isLoggedIn={subscription.isLoggedIn}
                     hasPaidAccess={subscription.hasPaidAccess}
                   />
-                  {tier.footerNote && !(subscription.isLoggedIn && tier.id === "starter") && !subscription.hasPaidAccess ? (
+                  {tier.footerNote &&
+                  subscription.profileReady &&
+                  !(subscription.isLoggedIn && tier.id === "starter") &&
+                  !subscription.hasPaidAccess ? (
                     <p className="text-center text-muted-foreground/50 text-xs mt-3">{tier.footerNote}</p>
                   ) : null}
-                  {tier.footerNote && subscription.hasPaidAccess && checkoutKey ? (
+                  {tier.footerNote && subscription.profileReady && subscription.hasPaidAccess && checkoutKey ? (
                     <p className="text-center text-muted-foreground/50 text-xs mt-3">
                       Change or cancel in the billing portal.
                     </p>

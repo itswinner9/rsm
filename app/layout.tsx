@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { SITE_DOMAIN, SITE_NAME } from "@/lib/site-nav";
 import { openGraphDefaults, siteDescription, siteKeywords, siteUrl } from "@/lib/site-metadata";
 import { SiteJsonLd } from "@/components/seo/site-json-ld";
+import { RegisterDeviceOnLogin } from "@/components/auth/register-device-on-login";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -47,6 +48,7 @@ export default function RootLayout({
     <html lang="en-CA" suppressHydrationWarning>
       <body className={inter.className}>
         <SiteJsonLd />
+        <RegisterDeviceOnLogin />
         {children}
         <Toaster />
       </body>

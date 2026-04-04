@@ -48,7 +48,7 @@ export default function AboutPage() {
 
           <div className="mt-12 flex flex-wrap items-center gap-3">
             <Button asChild size="default" className="rounded-full px-6">
-              <Link href="/auth/signup">Start free</Link>
+              <Link href="/auth/signup">Get started</Link>
             </Button>
             <Button asChild variant="ghost" size="default" className="rounded-full text-muted-foreground">
               <Link href="/pricing">Pricing</Link>

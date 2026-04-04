@@ -39,15 +39,20 @@ export const pricingHero = {
   eyebrow: "Plans · resumify.cc",
   title: "Invest in interviews—not ignored applications",
   subtitle:
-    "ATS systems screen you before a human ever does. Resumify aligns your real experience to each job, shows your match score, and exports clean PDFs and DOCX. Start with a 3-day trial (card on file), then stay on monthly or yearly billing in CAD.",
+    "ATS systems screen you before a human ever does. Resumify aligns your real experience to each job, shows your match score, and exports clean PDFs and DOCX. Start with a 3-day trial (card required at checkout), then stay on monthly or yearly billing in CAD.",
 };
+
+/** Shown while session or profile is loading so we don’t flash guest-only copy to signed-in users. */
+export const pricingHeroProfileLoading = "Checking your account…";
 
 export const homePricingHero = {
   eyebrow: "Plans · resumify.cc",
   title: "A few dollars a month vs. months of silence",
   subtitle:
-    "Subscribe with a card to start your 3-day trial: one optimization per UTC day while trialing, then unlimited while your subscription is active. Choose monthly or yearly billing—all in Canadian dollars via Stripe.",
+    "Subscribe with a card to start your 3-day trial (card required at checkout): one optimization per UTC day while trialing, then unlimited while your subscription is active. Choose monthly or yearly billing—all in Canadian dollars via Stripe.",
 };
+
+export const homePricingHeroProfileLoading = pricingHeroProfileLoading;
 
 export const tierDefinitions: Record<PricingTierDefinition["id"], PricingTierDefinition> = {
   starter: {
@@ -137,9 +142,9 @@ export const pricingHeroLoggedInNoSub =
 /** Hero line when user already has trialing or active access. */
 export function pricingHeroSubscriberLine(isTrialing: boolean, trialEndLabel: string | null): string {
   if (isTrialing && trialEndLabel) {
-    return `You're on a trial (ends ${trialEndLabel}). Manage billing from your profile.`;
+    return `Your trial is on this account (ends ${trialEndLabel}). Billing and plan changes are in your profile — no need to subscribe again.`;
   }
-  return "You're subscribed. Manage billing or change plans from your profile.";
+  return "Your plan is active on this account. Manage billing or change plans from your profile — no second subscription needed.";
 }
 
 export const manageBillingLabel = "Manage billing";
