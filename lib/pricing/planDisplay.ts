@@ -130,6 +130,25 @@ export const tierDefinitions: Record<PricingTierDefinition["id"], PricingTierDef
 
 export const pricingTierOrder: PricingTierDefinition["id"][] = ["starter", "monthly", "yearly"];
 
+/** Hero line when logged in but not yet subscribed (pricing + home #pricing). */
+export const pricingHeroLoggedInNoSub =
+  "You're signed in — choose monthly or yearly to start your 3-day trial (card on file). No charge until the trial ends.";
+
+/** Hero line when user already has trialing or active access. */
+export function pricingHeroSubscriberLine(isTrialing: boolean, trialEndLabel: string | null): string {
+  if (isTrialing && trialEndLabel) {
+    return `You're on a trial (ends ${trialEndLabel}). Manage billing from your profile.`;
+  }
+  return "You're subscribed. Manage billing or change plans from your profile.";
+}
+
+export const manageBillingLabel = "Manage billing";
+export const manageBillingHref = "/profile";
+export const dashboardHref = "/dashboard";
+export const builderHref = "/builder";
+export const starterCtaLoggedInLabel = "Open builder";
+export const starterCtaSubscriberLabel = "Manage plan";
+
 export const faqSectionTitle = "Common questions";
 
 export const pricingFaqs: { q: string; a: string }[] = [

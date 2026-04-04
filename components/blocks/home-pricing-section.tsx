@@ -3,17 +3,21 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { CheckCircle, Crown, Zap, ArrowRight, Loader2, Sparkles } from "lucide-react";
+import { CheckCircle, Crown, Zap, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { startStripeCheckout } from "@/lib/stripe/startCheckout";
 import {
   homePricingHero,
+  pricingHeroLoggedInNoSub,
+  pricingHeroSubscriberLine,
   pricingTierOrder,
   tierDefinitions,
   type PricingTierDefinition,
 } from "@/lib/pricing/planDisplay";
+import { useUserSubscription } from "@/hooks/use-user-subscription";
+import { PricingTierActions } from "@/components/pricing/PricingTierActions";
 
 function TierIcon({ icon }: { icon: PricingTierDefinition["icon"] }) {
   const cls = "w-5 h-5";
@@ -25,6 +29,7 @@ function TierIcon({ icon }: { icon: PricingTierDefinition["icon"] }) {
 export function HomePricingSection() {
   const [loading, setLoading] = useState<null | "month" | "year">(null);
   const { toast } = useToast();
+  const subscription = useUserSubscription();
 
   const handleUpgrade = async (plan: "month" | "year") => {
     setLoading(plan);
@@ -42,6 +47,13 @@ export function HomePricingSection() {
       setLoading(null);
     }
   };
+
+  const heroSubtitle =
+    !subscription.loading && subscription.isLoggedIn && subscription.hasPaidAccess
+      ? pricingHeroSubscriberLine(subscription.isTrialing, subscription.trialEndLabel)
+      : !subscription.loading && subscription.isLoggedIn && !subscription.hasPaidAccess
+        ? pricingHeroLoggedInNoSub
+        : homePricingHero.subtitle;
 
   return (
     <section id="pricing" className="bg-background py-24 px-4 sm:px-6 lg:px-8 border-t border-border/50">
@@ -71,7 +83,7 @@ export function HomePricingSection() {
             transition={{ delay: 0.1 }}
             className="text-muted-foreground text-lg max-w-2xl mx-auto"
           >
-            {homePricingHero.subtitle}
+            {heroSubtitle}
           </motion.p>
         </div>
 
@@ -150,34 +162,22 @@ export function HomePricingSection() {
                     </li>
                   ))}
                 </ul>
-                {isStarter && tier.signupHref ? (
-                  <Button asChild variant="outline" className="w-full rounded-xl">
-                    <Link href={tier.signupHref}>
-                      {tier.ctaLabel} <ArrowRight className="ml-2 w-4 h-4" />
-                    </Link>
-                  </Button>
-                ) : checkoutKey ? (
-                  <Button
-                    onClick={() => handleUpgrade(checkoutKey)}
-                    disabled={loading !== null}
-                    className="w-full rounded-xl"
-                  >
-                    {loading === checkoutKey ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Loading...
-                      </>
-                    ) : (
-                      <>
-                        {tier.ctaLabel} <ArrowRight className="ml-2 w-4 h-4" />
-                      </>
-                    )}
-                  </Button>
-                ) : null}
-                {tier.id === "monthly" ? (
+                <PricingTierActions
+                  tier={tier}
+                  loadingPlan={loading}
+                  onCheckout={handleUpgrade}
+                  subscriptionLoading={subscription.loading}
+                  isLoggedIn={subscription.isLoggedIn}
+                  hasPaidAccess={subscription.hasPaidAccess}
+                />
+                {tier.id === "monthly" && !subscription.hasPaidAccess ? (
                   <p className="text-center text-muted-foreground/50 text-xs mt-3">Stripe · cancel anytime</p>
-                ) : tier.id === "yearly" ? (
+                ) : tier.id === "yearly" && !subscription.hasPaidAccess ? (
                   <p className="text-center text-muted-foreground/50 text-xs mt-3">Billed yearly in CAD</p>
+                ) : tier.id === "monthly" && subscription.hasPaidAccess ? (
+                  <p className="text-center text-muted-foreground/50 text-xs mt-3">Change or cancel in the billing portal.</p>
+                ) : tier.id === "yearly" && subscription.hasPaidAccess ? (
+                  <p className="text-center text-muted-foreground/50 text-xs mt-3">Change or cancel in the billing portal.</p>
                 ) : null}
               </motion.div>
             );

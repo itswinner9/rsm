@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { CheckCircle, Zap, Crown, ArrowRight, Loader2, Sparkles } from "lucide-react";
+import { CheckCircle, Zap, Crown, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
@@ -14,10 +13,14 @@ import {
   pricingHero,
   pricingFaqs,
   faqSectionTitle,
+  pricingHeroLoggedInNoSub,
+  pricingHeroSubscriberLine,
   pricingTierOrder,
   tierDefinitions,
   type PricingTierDefinition,
 } from "@/lib/pricing/planDisplay";
+import { useUserSubscription } from "@/hooks/use-user-subscription";
+import { PricingTierActions } from "@/components/pricing/PricingTierActions";
 
 function TierIcon({ icon }: { icon: PricingTierDefinition["icon"] }) {
   const cls = "w-5 h-5";
@@ -35,6 +38,7 @@ function iconWrapClass(tier: PricingTierDefinition) {
 export default function PricingPage() {
   const [loadingPlan, setLoadingPlan] = useState<null | "month" | "year">(null);
   const { toast } = useToast();
+  const subscription = useUserSubscription();
 
   const handleUpgrade = async (plan: "month" | "year") => {
     setLoadingPlan(plan);
@@ -52,6 +56,13 @@ export default function PricingPage() {
       setLoadingPlan(null);
     }
   };
+
+  const heroSubtitle =
+    !subscription.loading && subscription.isLoggedIn && subscription.hasPaidAccess
+      ? pricingHeroSubscriberLine(subscription.isTrialing, subscription.trialEndLabel)
+      : !subscription.loading && subscription.isLoggedIn && !subscription.hasPaidAccess
+        ? pricingHeroLoggedInNoSub
+        : pricingHero.subtitle;
 
   return (
     <div className="min-h-screen bg-background">
@@ -82,7 +93,7 @@ export default function PricingPage() {
               transition={{ delay: 0.2 }}
               className="text-muted-foreground text-lg max-w-2xl mx-auto"
             >
-              {pricingHero.subtitle}
+              {heroSubtitle}
             </motion.p>
           </div>
 
@@ -154,32 +165,21 @@ export default function PricingPage() {
                       </li>
                     ))}
                   </ul>
-                  {isStarter && tier.signupHref ? (
-                    <Button asChild variant="outline" className="w-full rounded-xl">
-                      <Link href={tier.signupHref}>
-                        {tier.ctaLabel} <ArrowRight className="w-4 h-4 ml-2" />
-                      </Link>
-                    </Button>
-                  ) : checkoutKey ? (
-                    <Button
-                      onClick={() => handleUpgrade(checkoutKey)}
-                      disabled={loadingPlan !== null}
-                      className="w-full rounded-xl"
-                    >
-                      {loadingPlan === checkoutKey ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Loading...
-                        </>
-                      ) : (
-                        <>
-                          {tier.ctaLabel} <ArrowRight className="w-4 h-4 ml-2" />
-                        </>
-                      )}
-                    </Button>
-                  ) : null}
-                  {tier.footerNote ? (
+                  <PricingTierActions
+                    tier={tier}
+                    loadingPlan={loadingPlan}
+                    onCheckout={handleUpgrade}
+                    subscriptionLoading={subscription.loading}
+                    isLoggedIn={subscription.isLoggedIn}
+                    hasPaidAccess={subscription.hasPaidAccess}
+                  />
+                  {tier.footerNote && !(subscription.isLoggedIn && tier.id === "starter") && !subscription.hasPaidAccess ? (
                     <p className="text-center text-muted-foreground/50 text-xs mt-3">{tier.footerNote}</p>
+                  ) : null}
+                  {tier.footerNote && subscription.hasPaidAccess && checkoutKey ? (
+                    <p className="text-center text-muted-foreground/50 text-xs mt-3">
+                      Change or cancel in the billing portal.
+                    </p>
                   ) : null}
                 </motion.div>
               );

@@ -10,6 +10,7 @@ import {
   summarizeCheckoutLineItems,
   validateCheckoutLineItemsForStripe,
 } from "@/lib/stripe/validateCheckoutLineItems";
+import { hasPaidPlanAccess } from "@/lib/subscription/access";
 
 const TRIAL_DAYS = 3;
 
@@ -33,6 +34,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { data: profileRow } = await supabase
+      .from("user_profiles")
+      .select("subscription_status, stripe_customer_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (hasPaidPlanAccess(profileRow?.subscription_status)) {
+      return NextResponse.json(
+        {
+          error:
+            "You already have a subscription or trial. Manage billing from your profile to change plans.",
+        },
+        { status: 400 }
+      );
+    }
+
     const body = (await request.json().catch(() => ({}))) as { plan?: string };
     const plan = body.plan === "year" ? "year" : "month";
 
@@ -53,12 +70,6 @@ export async function POST(request: Request) {
     const pricingMode = usedInlineFallback ? "inline_price_data" : "catalog_price_id";
     console.info(`[stripe/checkout] plan=${plan} mode=${pricingMode} items=${summarizeCheckoutLineItems(lineItems)}`);
 
-    const { data: profile } = await supabase
-      .from("user_profiles")
-      .select("stripe_customer_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
     const origin = getAppOrigin();
 
     const base: Stripe.Checkout.SessionCreateParams = {
@@ -77,7 +88,7 @@ export async function POST(request: Request) {
       },
     };
 
-    const customerId = profile?.stripe_customer_id?.trim();
+    const customerId = profileRow?.stripe_customer_id?.trim();
     let session: Stripe.Checkout.Session;
 
     try {
