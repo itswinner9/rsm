@@ -39,9 +39,11 @@ export async function middleware(request: NextRequest) {
   );
 
   if (isProtected && !session) {
-    const url = request.nextUrl.clone();
+    const destination = `${request.nextUrl.pathname}${request.nextUrl.search}`;
+    const url = new URL(request.url);
     url.pathname = "/auth/login";
-    url.searchParams.set("redirect", request.nextUrl.pathname);
+    url.search = "";
+    url.searchParams.set("redirect", destination);
     return NextResponse.redirect(url);
   }
 

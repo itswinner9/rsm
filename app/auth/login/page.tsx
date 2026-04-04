@@ -17,15 +17,14 @@ import { AuthLoadingOverlay } from "@/components/auth/auth-loading-overlay";
 import { VerifyEmailPanel } from "@/components/auth/verify-email-panel";
 import { SITE_NAME } from "@/lib/site-nav";
 import { getAuthCallbackUrl } from "@/lib/auth-redirect";
+import { getPostLoginDestination } from "@/lib/auth/post-login-destination";
 
 function readSearchParams() {
   if (typeof window === "undefined") {
     return { redirect: "/dashboard", authError: null as string | null };
   }
   const params = new URLSearchParams(window.location.search);
-  const raw = params.get("redirect") || "/dashboard";
-  const redirect =
-    raw.startsWith("/") && !raw.startsWith("//") ? raw : "/dashboard";
+  const redirect = getPostLoginDestination(params);
   return { redirect, authError: params.get("error") };
 }
 
@@ -45,14 +44,12 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showVerifyPanel, setShowVerifyPanel] = useState(false);
-  const [redirect, setRedirect] = useState("/dashboard");
   const { toast } = useToast();
   const router = useRouter();
   const supabase = createClient();
 
   useEffect(() => {
-    const { redirect: r, authError } = readSearchParams();
-    setRedirect(r);
+    const { authError } = readSearchParams();
 
     if (authError === "auth_callback") {
       toast({
@@ -91,8 +88,24 @@ export default function LoginPage() {
         return;
       }
       if (data.session) {
+        const dest = getPostLoginDestination(new URLSearchParams(window.location.search));
+        const sid = (() => {
+          try {
+            return new URL(dest, window.location.origin).searchParams.get("session_id");
+          } catch {
+            return null;
+          }
+        })();
+        if (sid?.startsWith("cs_")) {
+          await fetch("/api/stripe/sync", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ session_id: sid }),
+            credentials: "same-origin",
+          });
+        }
         router.refresh();
-        window.location.assign(redirect);
+        window.location.assign(dest);
         return;
       }
       toast({
@@ -111,9 +124,14 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
     try {
+      const params = new URLSearchParams(window.location.search);
+      const next = getPostLoginDestination(params);
+      const callback = new URL(getAuthCallbackUrl());
+      callback.searchParams.set("next", next);
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: getAuthCallbackUrl() },
+        options: { redirectTo: callback.toString() },
       });
       if (error) {
         toast({ title: "Google login failed", description: error.message, variant: "destructive" });
