@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { BadgeDelta } from "@/components/ui/badge-delta";
 import { stripHtmlFromText } from "@/lib/resume/sanitizeResumeText";
 import { Button } from "@/components/ui/button";
+import { presentationMatchScore } from "@/lib/resume/jdKeywordMatchScore";
 
 interface ATSScoreProps {
   originalScore: number;
@@ -29,7 +30,7 @@ interface ATSScoreProps {
   improvements?: string[];
   /** Active paid subscription (unlimited runs); trialing users see trial-aware copy */
   isPaidActive?: boolean;
-  /** e.g. "Classic ATS Professional" — shown as template exploration hint */
+  /** e.g. template label — shown as layout exploration hint */
   suggestedTemplateLabel?: string;
 }
 
@@ -108,8 +109,8 @@ export function ATSScore({
   isPaidActive = false,
   suggestedTemplateLabel,
 }: ATSScoreProps) {
-  const orig = clampScore(originalScore);
-  const opt = clampScore(optimizedScore);
+  const orig = presentationMatchScore(clampScore(originalScore));
+  const opt = presentationMatchScore(clampScore(optimizedScore));
   const improvement = opt - orig;
 
   return (
@@ -124,7 +125,7 @@ export function ATSScore({
             <p className="text-sm font-semibold text-foreground leading-snug">Your resume was rewritten with AI</p>
             <p className="text-xs text-muted-foreground leading-relaxed">
               We aligned phrasing and structure to this job while keeping your real experience honest. Use the insights
-              below to iterate—then pick any of the three ATS layouts; the content stays the same.
+              below to iterate—then pick any layout; the content stays the same.
             </p>
             {suggestedTemplateLabel ? (
               <p className="flex items-start gap-2 text-xs text-muted-foreground pt-1">

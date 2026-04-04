@@ -324,7 +324,7 @@ export function ScratchResumeForm({ onComplete, disabled }: Props) {
               <div>
                 <h3 className="text-base font-semibold text-foreground">Summary & skills</h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  A tight summary and keyword-rich skills help ATS and skimming recruiters.
+                  A tight summary and keyword-rich skills help both quick human scans and alignment with the posting.
                 </p>
               </div>
               <label className="block space-y-1.5">

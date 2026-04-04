@@ -59,7 +59,7 @@ Canadian resume rules (MUST follow):
 - Reverse-chronological order for experience (most recent first).
 - No photo, date of birth, gender, marital status, age, or SIN.
 - No full street address — location as City, Province (or City, Province, Country) only.
-- One column, ATS-friendly structure; do not use tables for the main body.
+- One column, readable structure; do not use tables for the main body.
 - Start each bullet with a strong action verb; keep lines scannable.
 - Quantify only where the source material supports it — never invent metrics.
 - Target roughly 1–2 pages when rendered; tighten wording rather than padding.
@@ -83,7 +83,7 @@ Use this exact shape (do not include ats_score or ai_score — the server comput
   "weaknesses": ["short"],
   "suggestions": ["2-4 short next steps for the candidate"],
   "what_to_add": ["3-6 concrete additions ONLY if they could be truthful — e.g. a missing cert, tool, project, or metric they might have"],
-  "improvements": ["3-5 bullets on what you changed for ATS and clarity"],
+  "improvements": ["3-5 bullets on what you changed for clarity and alignment with the job description"],
   "suggested_template": "classic" | "executive" | "compact" | "modern" | "minimal",
   "optimized_resume_data": {
     "full_name": "string",
@@ -204,7 +204,7 @@ export async function POST(request: NextRequest) {
         ? `\nUser-specified target job title: ${userJobTitle.trim()}\n`
         : "";
 
-    const prompt = `You are an expert Canadian resume writer and ATS optimization specialist.
+    const prompt = `You are an expert Canadian resume writer. Focus on clarity, truthful facts, and alignment with the job description the candidate pastes—not on "beating" any specific employer software (you do not know which tools they use).
 
 ${CANADIAN_RULES}
 ${titleHint}
@@ -218,7 +218,7 @@ ${jobDescription}
 Your task:
 1. Infer structured data from the resume (do not add employers/roles/dates that are not implied by the source).
 2. Analyze the job description: title, keywords, skills, responsibilities.
-3. Produce ONE best ATS-optimized resume as structured JSON only — the same facts will be shown in five visual templates in the app; do not produce five different wordings.
+3. Produce ONE best tailored resume as structured JSON only — the same facts will be shown in five visual templates in the app; do not produce five different wordings.
 4. Tailor summary, headline, skills ordering, and bullet phrasing to the JD using keywords naturally.
 5. Set suggested_template per the rules below.
 

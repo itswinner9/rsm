@@ -22,6 +22,7 @@ import { ResumePreviewDialog } from "@/components/builder/ResumePreviewDialog";
 import type { OptimizedResumeData, ResumeTemplateId } from "@/lib/resume/types";
 import { ALL_TEMPLATE_IDS, optimizedResumeDataSchema, parseResumeTemplateId, TEMPLATE_META } from "@/lib/resume/types";
 import { stripHtmlFromText } from "@/lib/resume/sanitizeResumeText";
+import { presentationMatchScore } from "@/lib/resume/jdKeywordMatchScore";
 
 interface GenerationRow {
   id: string;
@@ -119,9 +120,10 @@ export function GenerationDetail({ gen }: { gen: GenerationRow }) {
   const optimizedScore =
     gen.ats_score_optimized ??
     (legacyVersions.length ? Math.max(...legacyVersions.map((v) => v.ats_score || 0)) : 0);
-  const originalScore = gen.ats_score_original ?? 0;
+  const displayOriginal = gen.ats_score_original != null ? presentationMatchScore(gen.ats_score_original) : null;
+  const displayOptimized = presentationMatchScore(optimizedScore);
   const improvement =
-    gen.ats_score_original != null && optimizedScore != null ? optimizedScore - gen.ats_score_original : null;
+    gen.ats_score_original != null && optimizedScore != null ? displayOptimized - displayOriginal! : null;
 
   const suggestedFromAnalysis: ResumeTemplateId | undefined = (() => {
     const g = gen.generated_resumes;
@@ -243,7 +245,7 @@ export function GenerationDetail({ gen }: { gen: GenerationRow }) {
           <div className="p-5 sm:p-6 text-center bg-muted/30">
             <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground mb-4">Original</p>
             {gen.ats_score_original != null ? (
-              <ScoreRing score={gen.ats_score_original} accentClass={ringAccent(gen.ats_score_original)} />
+              <ScoreRing score={displayOriginal!} accentClass={ringAccent(displayOriginal!)} />
             ) : (
               <p className="text-2xl font-semibold text-muted-foreground py-8">—</p>
             )}
@@ -252,7 +254,7 @@ export function GenerationDetail({ gen }: { gen: GenerationRow }) {
           <div className="p-5 sm:p-6 text-center bg-muted/30">
             <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground mb-4">Optimized</p>
             {optimizedScore > 0 || gen.ats_score_optimized != null ? (
-              <ScoreRing score={optimizedScore} accentClass={ringAccent(optimizedScore)} />
+              <ScoreRing score={displayOptimized} accentClass={ringAccent(displayOptimized)} />
             ) : (
               <p className="text-2xl font-semibold text-muted-foreground py-8">—</p>
             )}

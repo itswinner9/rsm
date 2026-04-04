@@ -22,9 +22,9 @@ export type OptimizeLoadingStepDef = {
 export const OPTIMIZE_LOADING_STEPS: OptimizeLoadingStepDef[] = [
   { title: "Reading your resume", hint: "Pulling roles, skills, and dates", Icon: FileSearch },
   { title: "Studying the job", hint: "Role requirements and keywords", Icon: ScanSearch },
-  { title: "Structuring your profile", hint: "Clean sections for ATS parsers", Icon: Boxes },
+  { title: "Structuring your profile", hint: "Clear sections recruiters can scan", Icon: Boxes },
   { title: "Tailoring the copy", hint: "One optimized version for all layouts", Icon: PenLine },
-  { title: "Preparing previews", hint: "Five ATS layouts (classic to minimal)", Icon: LayoutTemplate },
+  { title: "Preparing previews", hint: "Five layouts (classic to minimal)", Icon: LayoutTemplate },
 ];
 
 export function OptimizeLoadingPanel({ activeIndex }: { activeIndex: number }) {

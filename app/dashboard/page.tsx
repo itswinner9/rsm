@@ -4,7 +4,6 @@ import Link from "next/link";
 import {
   FileText,
   Plus,
-  Crown,
   Sparkles,
   Target,
   TrendingUp,
@@ -14,19 +13,23 @@ import {
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/layout/app-shell";
-import { DashboardClearSuccessQuery } from "@/components/dashboard/dashboard-clear-success-query";
-import { syncStripeSubscriptionForUser } from "@/lib/stripe/syncSubscription";
+import { PaymentSuccessBanner, type PaymentSuccessVariant } from "@/components/dashboard/payment-success-banner";
+import {
+  syncStripeSubscriptionForUser,
+  syncStripeSubscriptionFromCheckoutSession,
+} from "@/lib/stripe/syncSubscription";
 import { hasPaidPlanAccess, canStartOptimization } from "@/lib/subscription/access";
 import { planSummaryFromStatus } from "@/lib/subscription/appShellPlan";
 import type { FreePlanRow } from "@/lib/subscription/freePlan";
 import { parseResumeTemplateId, TEMPLATE_SHORT_LABEL } from "@/lib/resume/types";
+import { presentationMatchScore } from "@/lib/resume/jdKeywordMatchScore";
 import { AtsTrendMini, type AtsTrendPoint } from "@/components/dashboard/AtsTrendMini";
 import type { Metadata } from "next";
 import { siteDescription, openGraphDefaults } from "@/lib/site-metadata";
 
 export const metadata: Metadata = {
   title: "Recent",
-  description: "Your saved resume optimizations, match scores, and ATS trend.",
+  description: "Your saved resume optimizations, match scores, and trends.",
   robots: { index: false, follow: false },
   openGraph: {
     ...openGraphDefaults,
@@ -37,7 +40,17 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export type DashboardSearchParams = { success?: string | string[] };
+export type DashboardSearchParams = { success?: string | string[]; session_id?: string | string[] };
+
+function getCheckoutSessionId(sp: DashboardSearchParams | undefined): string | null {
+  const s = sp?.session_id;
+  if (typeof s === "string" && s.startsWith("cs_")) return s;
+  if (Array.isArray(s)) {
+    const hit = s.find((x) => typeof x === "string" && x.startsWith("cs_"));
+    return hit ?? null;
+  }
+  return null;
+}
 
 function paymentJustCompleted(sp: DashboardSearchParams | undefined): boolean {
   const s = sp?.success;
@@ -70,6 +83,12 @@ async function getData(searchParams?: DashboardSearchParams) {
 
   const profileRow = profileRes.data;
   const afterCheckout = paymentJustCompleted(searchParams);
+  const checkoutSessionId = getCheckoutSessionId(searchParams);
+
+  if (afterCheckout && checkoutSessionId) {
+    await syncStripeSubscriptionFromCheckoutSession(user.id, checkoutSessionId);
+  }
+
   if (
     afterCheckout ||
     !profileRow ||
@@ -94,9 +113,20 @@ async function getData(searchParams?: DashboardSearchParams) {
   return { user, profile, generations, generationsTotalCount };
 }
 
+function paymentCelebrationVariant(
+  showPaymentSuccess: boolean,
+  status: string | null | undefined
+): PaymentSuccessVariant {
+  if (!showPaymentSuccess) return "none";
+  if (!hasPaidPlanAccess(status)) return "pending";
+  if (status === "trialing") return "success-trial";
+  return "success-active";
+}
+
 export default async function DashboardPage({ searchParams }: { searchParams: DashboardSearchParams }) {
   const { user, profile, generations, generationsTotalCount } = await getData(searchParams);
   const showPaymentSuccess = paymentJustCompleted(searchParams);
+  const celebrationVariant = paymentCelebrationVariant(showPaymentSuccess, profile?.subscription_status);
 
   const isSubscribed = hasPaidPlanAccess(profile?.subscription_status);
   const freePlanRow: FreePlanRow = {
@@ -108,17 +138,23 @@ export default async function DashboardPage({ searchParams }: { searchParams: Da
   const canGenerate = canStartOptimization(profile?.subscription_status, freePlanRow);
 
   const scores = generations.map((g) => optimizedScoreForGen(g)).filter((n): n is number => n != null);
-  const bestScore = scores.length ? Math.max(...scores) : null;
-  const latestScore = generations.length ? optimizedScoreForGen(generations[0]) : null;
+  const bestScore = scores.length ? presentationMatchScore(Math.max(...scores)) : null;
+  const latestRaw = generations.length ? optimizedScoreForGen(generations[0]) : null;
+  const latestScore = latestRaw != null ? presentationMatchScore(latestRaw) : null;
   const avgScore =
-    scores.length >= 2 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+    scores.length >= 2
+      ? Math.round(scores.reduce((a, b) => a + presentationMatchScore(b), 0) / scores.length)
+      : null;
 
   const trendPointsChrono: AtsTrendPoint[] = [...generations]
     .reverse()
-    .map((gen) => ({
-      date: gen.created_at as string,
-      optimized: optimizedScoreForGen(gen),
-    }));
+    .map((gen) => {
+      const raw = optimizedScoreForGen(gen);
+      return {
+        date: gen.created_at as string,
+        optimized: raw != null ? presentationMatchScore(raw) : null,
+      };
+    });
 
   const initial = (title: string) => {
     const t = (title || "?").trim();
@@ -126,26 +162,15 @@ export default async function DashboardPage({ searchParams }: { searchParams: Da
   };
 
   return (
-    <>
-      <Suspense fallback={null}>
-        <DashboardClearSuccessQuery />
-      </Suspense>
-      <AppShell
-        userEmail={user.email}
-        planSummary={planSummaryFromStatus(profile?.subscription_status, freePlanRow)}
-      >
-        <div className="max-w-4xl mx-auto space-y-10 pb-16">
-          {showPaymentSuccess && (
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 flex gap-3">
-              <Crown className="size-4 text-emerald-600 shrink-0 mt-0.5" strokeWidth={1.25} />
-              <div className="text-sm">
-                <p className="font-medium text-foreground">You&apos;re all set</p>
-                <p className="text-muted-foreground text-xs mt-0.5">Unlimited optimizations are on.</p>
-              </div>
-            </div>
-          )}
-
-          <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <AppShell
+      userEmail={user.email}
+      planSummary={planSummaryFromStatus(profile?.subscription_status, freePlanRow)}
+    >
+      <div className="max-w-4xl mx-auto space-y-10 pb-16">
+        <Suspense fallback={null}>
+          <PaymentSuccessBanner variant={celebrationVariant} />
+        </Suspense>
+        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Recent</h1>
               <p className="text-sm text-muted-foreground mt-1">
@@ -242,7 +267,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Da
               </h2>
               <ul className="rounded-2xl border border-border bg-card divide-y divide-border overflow-hidden shadow-sm">
                 {generations.map((gen: any) => {
-                  const best = optimizedScoreForGen(gen);
+                  const bestRaw = optimizedScoreForGen(gen);
+                  const best = bestRaw != null ? presentationMatchScore(bestRaw) : null;
                   const chosen = parseResumeTemplateId(gen.selected_template);
                   const title = gen.job_title || "Optimization";
 
@@ -334,7 +360,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: Da
             </Link>
           </footer>
         </div>
-      </AppShell>
-    </>
+    </AppShell>
   );
 }

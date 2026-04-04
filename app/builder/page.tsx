@@ -345,7 +345,7 @@ export default function BuilderPage() {
                 Optimize for a role
               </h2>
               <p className="text-xs text-muted-foreground mt-0.5 max-w-md leading-snug">
-                Upload once → paste a job → five ATS-ready layouts.
+                Upload once → paste a job → five professional layouts.
               </p>
             </div>
             <Link
@@ -489,7 +489,7 @@ export default function BuilderPage() {
                   Paste the job description
                 </h1>
                 <p className="text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
-                  More detail helps ATS keyword alignment and your match score.
+                  More detail helps keyword alignment with the posting and your match score.
                 </p>
               </div>
 
@@ -533,7 +533,7 @@ export default function BuilderPage() {
                   <div className="max-w-2xl sm:max-w-none space-y-2">
                     <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-primary/90 mb-1 flex items-center justify-center sm:justify-start gap-2">
                       <Sparkles className="size-3.5" strokeWidth={1.25} />
-                      One resume · five ATS layouts
+                      One resume · five layouts
                     </p>
                     <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
                       {result.job_title ? `Tailored for ${result.job_title}` : "Your optimized resume"}

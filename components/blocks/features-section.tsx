@@ -24,9 +24,9 @@ const features = [
     },
     {
         icon: Zap,
-        title: 'Three ATS layouts, same story',
+        title: 'Multiple layouts, same story',
         description:
-            'Five layout skins on one master resume. Pick the look; PDF and DOCX stay interview-ready.',
+            'Several layout options on one tailored resume. Pick the look; PDF and DOCX stay interview-ready.',
     },
     {
         icon: Download,
@@ -62,7 +62,7 @@ export function FeaturesSection() {
                         transition={{ delay: 0.05 }}
                         className="text-foreground text-3xl sm:text-4xl font-bold tracking-tight mb-4"
                     >
-                        Get past the bot, then impress the human
+                        Clear for recruiters—aligned to the posting you paste
                     </motion.h2>
                     <motion.p
                         initial={{ opacity: 0, y: 16 }}
@@ -71,7 +71,9 @@ export function FeaturesSection() {
                         transition={{ delay: 0.1 }}
                         className="text-muted-foreground text-lg max-w-2xl mx-auto"
                     >
-                        Built for real job searches—starting with Canadian resume norms, with ATS logic that applies on Indeed, LinkedIn, and company boards everywhere.
+                        Built for real job searches—Canadian resume norms first. Use it for postings on Indeed, LinkedIn,
+                        company sites, and anywhere else you apply. We don&apos;t know which tools a given employer uses;
+                        we help you match the job text you provide.
                     </motion.p>
                 </div>
 

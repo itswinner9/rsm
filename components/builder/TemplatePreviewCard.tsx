@@ -67,7 +67,7 @@ export function TemplatePreviewCard({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-1.5 py-0.5 rounded-md bg-muted/80 border border-border/80">
-              ATS
+              Layout
             </span>
             {isSuggested ? (
               <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-primary px-1.5 py-0.5 rounded-md bg-primary/10 border border-primary/20">

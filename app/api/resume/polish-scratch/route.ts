@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     }
 
     const prompt = `
-You are an expert Canadian resume coach. Improve this draft for clarity, ATS-friendly keywords, and strong action-led bullets.
+You are an expert Canadian resume coach. Improve this draft for clarity, keywords that fit the roles the user targets, and strong action-led bullets.
 Rules:
 - Do NOT invent employers, job titles, degrees, schools, dates, or metrics. Only rephrase and tighten what is present or clearly implied.
 - Canadian style: no photo/SIN; location as City, Province when shown; reverse-chronological experience.

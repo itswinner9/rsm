@@ -2,6 +2,7 @@
 
 import { TrendingUp, TrendingDown, Minus, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { presentationMatchScore } from "@/lib/resume/jdKeywordMatchScore";
 
 function clampPct(n: number) {
   return Math.min(100, Math.max(0, Math.round(Number.isFinite(n) ? n : 0)));
@@ -16,8 +17,8 @@ export function MatchImprovementCard({
   optimizedScore: number;
   className?: string;
 }) {
-  const orig = clampPct(originalScore);
-  const opt = clampPct(optimizedScore);
+  const orig = presentationMatchScore(clampPct(originalScore));
+  const opt = presentationMatchScore(clampPct(optimizedScore));
   const delta = opt - orig;
 
   return (

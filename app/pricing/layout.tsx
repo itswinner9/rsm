@@ -7,7 +7,7 @@ const canonical = `${siteUrl()}/pricing`;
 
 export const metadata: Metadata = {
   title: "Plans & pricing",
-  description: `Resumify (${SITE_DOMAIN}) pricing: 3-day Stripe trial (card required), then $9.99/mo or $99.99/yr CAD for unlimited ATS resume optimizations, match scores, and PDF/DOCX export.`,
+  description: `Resumify (${SITE_DOMAIN}) pricing: 3-day Stripe trial (card required), then $9.99/mo or $99.99/yr CAD for unlimited job-tailored resume optimizations, match scores, and PDF/DOCX export.`,
   alternates: {
     canonical: "/pricing",
   },

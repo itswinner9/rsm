@@ -22,8 +22,8 @@ export default function AboutPage() {
             Resumes that match the role—not a generic file.
           </h1>
           <p className="mt-6 text-base leading-relaxed text-muted-foreground sm:text-[17px]">
-            {SITE_NAME} turns your real experience into a clear story for each posting, so ATS and recruiters see a fit
-            faster.
+            {SITE_NAME} turns your real experience into a clear story for each posting—so your fit is obvious to the
+            people (and tools) on the other side.
           </p>
 
           <ul className="mt-10 space-y-3 border-t border-border pt-10 text-[15px] leading-relaxed text-muted-foreground">

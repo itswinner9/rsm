@@ -39,7 +39,7 @@ export const pricingHero = {
   eyebrow: "Plans · resumify.cc",
   title: "Invest in interviews—not ignored applications",
   subtitle:
-    "ATS systems screen you before a human ever does. Resumify aligns your real experience to each job, shows your match score, and exports clean PDFs and DOCX. Subscribers get resume storage—past runs and downloads on your dashboard. Yearly billing saves about $20 vs paying monthly for the same features. Start with a 3-day trial (card at checkout), then monthly or yearly in CAD.",
+    "Resumify aligns your real experience to each job description you paste—match scoring against that text, cleaner wording, and exports to PDF or DOCX. Subscribers get resume storage—past runs and downloads on your dashboard. Yearly billing saves about $20 vs paying monthly for the same features. Start with a 3-day trial (card at checkout), then monthly or yearly in CAD.",
 };
 
 /** Shown while session or profile is loading so we don’t flash guest-only copy to signed-in users. */
@@ -89,7 +89,7 @@ export const tierDefinitions: Record<PricingTierDefinition["id"], PricingTierDef
       "Unlimited optimizations & exports while subscribed",
       "Resume storage: past runs & downloads on your dashboard",
       "AI bullet, summary & headline tools",
-      "ATS keyword tuning & match scoring",
+      "Job-description keyword alignment & match scoring",
       "Full template library · PDF & DOCX",
       "Manage or cancel in the billing portal",
     ],
@@ -115,7 +115,7 @@ export const tierDefinitions: Record<PricingTierDefinition["id"], PricingTierDef
       "3-day trial, then yearly billing in CAD",
       "Unlimited optimizations while subscribed",
       "Resume storage: past runs & exports on your dashboard",
-      "AI rewrites, ATS tools, templates, exports",
+      "AI rewrites, templates, match insights, exports",
       "Receipts & payment method in Stripe portal",
     ],
     featuresHome: [
@@ -195,12 +195,12 @@ export const faqSectionTitle = "Common questions";
 
 export const pricingFaqs: { q: string; a: string }[] = [
   {
-    q: "What is an ATS—and why should I care?",
-    a: "Most employers use Applicant Tracking Systems to scan and rank applications before a person reads them. If your file isn’t easy for those systems to parse—or doesn’t reflect important keywords from the posting—it can be filtered out even when you’re a strong match. Resumify helps you tune one truthful resume so both software and hiring managers can see your fit.",
+    q: "Do you “beat” applicant tracking systems?",
+    a: "No—and anyone who promises that across hundreds of different employer tools isn’t being straight with you. Resumify compares your resume to the job description you paste (keyword overlap) and helps you write more clearly for that role. What happens after you upload depends on that employer’s process, which we don’t control or reverse-engineer.",
   },
   {
-    q: "Do I get three different resumes?",
-    a: "No. You get one ATS-focused master resume tailored to the job description you provide. We show it in five layouts (same facts and wording, different visual structure) so you can pick the look you like and export PDF or DOCX from any layout.",
+    q: "Why match my resume to the job posting?",
+    a: "Hiring teams often start from the text of the role. If your resume doesn’t reflect important language from the posting—or is hard to read—your fit can be missed. We help you tune one truthful resume to the description you provide. We show it in five layouts (same facts and wording, different visual structure) so you can pick the look you like and export PDF or DOCX from any layout.",
   },
   {
     q: "Will you invent jobs, skills, or credentials on my resume?",

@@ -63,7 +63,7 @@ export function ResumePreviewDialog({
             Resume preview
           </DialogTitle>
           <DialogDescription className="text-xs sm:text-sm leading-relaxed">
-            Same content in five ATS layouts. Switch tabs to compare, then download the one you want.
+            Same content in five layouts. Switch tabs to compare, then download the one you want.
           </DialogDescription>
         </DialogHeader>
 

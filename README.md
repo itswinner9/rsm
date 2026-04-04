@@ -1,6 +1,6 @@
 # Resumify (rsm)
 
-Next.js app: ATS-focused resume optimization, Supabase auth/data, Stripe billing.
+Next.js app: job-tailored resume optimization, Supabase auth/data, Stripe billing.
 
 ## Local setup
 

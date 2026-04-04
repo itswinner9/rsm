@@ -11,8 +11,9 @@ export function SiteFooter() {
           <div className="md:col-span-2">
             <ResumifyLogo className="mb-4" gradientIdSuffix="ftr" />
             <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">
-              Stop getting filtered out by ATS bots. {SITE_NAME} tailors your real experience to each posting—keyword
-              match scores, honest gaps, and PDF or DOCX in seconds. {SITE_DOMAIN}
+              {SITE_NAME} helps you tailor your real experience to each posting—keyword overlap with the job text,
+              honest gaps, and PDF or DOCX in seconds. No employer uses the same screening setup; we don&apos;t pretend
+              otherwise. {SITE_DOMAIN}
             </p>
             <p className="text-muted-foreground/50 text-xs mt-4">
               © {new Date().getFullYear()} {SITE_NAME}. All rights reserved.

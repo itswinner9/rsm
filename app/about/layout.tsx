@@ -6,14 +6,14 @@ const canonical = `${siteUrl()}/about`;
 
 export const metadata: Metadata = {
   title: "About",
-  description: `${SITE_NAME} (${SITE_DOMAIN}) — honest AI resume optimization for ATS and recruiters. One tailored resume per job, keyword match scores, PDF and DOCX export.`,
+  description: `${SITE_NAME} (${SITE_DOMAIN}) — honest AI resume help for each job you apply to. One tailored resume per posting, keyword overlap scores, PDF and DOCX export.`,
   alternates: {
     canonical: "/about",
   },
   openGraph: {
     ...openGraphDefaults,
     title: `About · ${SITE_NAME}`,
-    description: `What ${SITE_NAME} does and how we keep your resume truthful while improving clarity and ATS fit.`,
+    description: `What ${SITE_NAME} does and how we keep your resume truthful while improving clarity for the role.`,
     url: canonical,
   },
   twitter: {

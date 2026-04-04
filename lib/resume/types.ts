@@ -69,7 +69,7 @@ export type EducationEntry = z.infer<typeof educationEntrySchema>;
 export const aiOptimizeResponseSchema = z.object({
   job_title: z.string().nullish().transform((v) => v ?? ""),
   company_name: z.string().nullish().transform((v) => v ?? ""),
-  /** Legacy; ATS scores are computed server-side from JD keyword overlap. */
+  /** Legacy; match scores are computed server-side from JD keyword overlap. */
   ai_score: z.coerce.number().min(0).max(40).optional(),
   ats_score: z.coerce.number().min(0).max(100).optional(),
   matched_keywords: strArr,
@@ -90,8 +90,8 @@ export const TEMPLATE_META: Record<
   { label: string; description: string }
 > = {
   classic: {
-    label: "Classic ATS Professional",
-    description: "Safe, familiar sections—best default for most ATS parsers and long work history.",
+    label: "Classic Professional",
+    description: "Safe, familiar sections—best default for long work history and straightforward layouts.",
   },
   executive: {
     label: "Modern Executive Clean",
@@ -103,7 +103,7 @@ export const TEMPLATE_META: Record<
   },
   modern: {
     label: "Contemporary Sidebar Accent",
-    description: "Bold header with accent rail—stands out while staying ATS-friendly.",
+    description: "Bold header with accent rail—stands out while staying easy to read and export.",
   },
   minimal: {
     label: "Minimal Open White",

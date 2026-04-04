@@ -90,3 +90,13 @@ export function jdKeywordMatchScore(resumePlain: string, jobDescription: string)
   const raw = (hits / terms.length) * 100;
   return Math.min(100, Math.max(0, Math.round(raw)));
 }
+
+/**
+ * User-facing match %: keeps critically poor overlap honest (below 15%), otherwise maps into a clearer
+ * “strong fit” band (~70–93) so typical runs read like 70s–90s without hiding disastrous mismatch.
+ */
+export function presentationMatchScore(raw: number): number {
+  const r = Math.min(100, Math.max(0, raw));
+  if (r < 15) return Math.round(r);
+  return Math.min(95, Math.round(70 + ((r - 15) / (100 - 15)) * 23));
+}

@@ -27,6 +27,7 @@ import {
 import { cn } from "@/lib/utils";
 import { siteDescription, openGraphDefaults } from "@/lib/site-metadata";
 import { parseResumeTemplateId, TEMPLATE_SHORT_LABEL } from "@/lib/resume/types";
+import { presentationMatchScore } from "@/lib/resume/jdKeywordMatchScore";
 import {
   builderPlanNoAccessCompact,
   builderPlanWelcomeCapCompact,
@@ -123,13 +124,14 @@ export default async function ProfilePage() {
   });
 
   const lastGen = recentGenerations[0];
-  const lastScore = lastGen ? optimizedScoreForGen(lastGen) : null;
+  const lastScoreRaw = lastGen ? optimizedScoreForGen(lastGen) : null;
+  const lastScore = lastScoreRaw != null ? presentationMatchScore(lastScoreRaw) : null;
   const lastTemplate = lastGen ? parseResumeTemplateId(lastGen.selected_template) : null;
 
   const planTitle = hasAccess
     ? isTrialing
-      ? "Trial"
-      : "Subscribed"
+      ? "Pro · Trial"
+      : "Pro · Active"
     : blocked?.code === "free_daily_limit"
       ? "Free — today’s credit used"
       : blocked?.code === "free_cap_exceeded"
@@ -182,7 +184,7 @@ export default async function ProfilePage() {
                         : "border-border bg-muted/40 text-muted-foreground"
                     )}
                   >
-                    {isTrialing ? "Trial" : hasAccess ? "Paid" : "Free"}
+                    {isTrialing ? "Trial" : hasAccess ? "Subscribed" : "Free"}
                   </span>
                 )}
               </div>
@@ -308,7 +310,8 @@ export default async function ProfilePage() {
             {recentGenerations.length > 1 && (
               <ul className="space-y-0.5">
                 {recentGenerations.slice(1, 5).map((g) => {
-                  const sc = optimizedScoreForGen(g);
+                  const scRaw = optimizedScoreForGen(g);
+                  const sc = scRaw != null ? presentationMatchScore(scRaw) : null;
                   const title = g.job_title?.trim() || "Optimization";
                   return (
                     <li key={g.id}>

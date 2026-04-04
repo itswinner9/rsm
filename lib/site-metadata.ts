@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import { SITE_DOMAIN, SITE_NAME } from "@/lib/site-nav";
 
 export const siteDescription =
-  "Resumify at resumify.cc — AI resume optimizer for ATS systems. Tailor one truthful resume to every job, see keyword match scores, export PDF & DOCX in three layouts. Built for Canada and beyond.";
+  "Resumify at resumify.cc — AI resume builder that tailors your real experience to each job. Keyword overlap with the posting, clear wording, multiple layouts, PDF & DOCX export. Built for Canada and beyond.";
 
 export const siteKeywords: string[] = [
   "Resumify",
   "resumify.cc",
-  "ATS resume",
+  "tailored resume",
   "resume optimizer",
   "AI resume",
   "Canadian resume",

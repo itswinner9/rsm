@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { X, Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { stripHtmlFromText } from "@/lib/resume/sanitizeResumeText";
+import { presentationMatchScore } from "@/lib/resume/jdKeywordMatchScore";
 
 interface ResumeVersion {
   template: string;
@@ -93,6 +94,7 @@ function formatResumeContent(content: string) {
 
 export function ResumePreview({ version, onClose, onDownload, isDownloading }: ResumePreviewProps) {
   const resumeRef = useRef<HTMLDivElement>(null);
+  const displayScore = presentationMatchScore(version.ats_score);
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
@@ -101,7 +103,7 @@ export function ResumePreview({ version, onClose, onDownload, isDownloading }: R
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
           <div>
             <h3 className="text-white font-semibold">{version.template}</h3>
-            <p className="text-white/50 text-sm">ATS Score: <span className="text-green-400 font-bold">{version.ats_score}%</span></p>
+            <p className="text-white/50 text-sm">Match score: <span className="text-green-400 font-bold">{displayScore}%</span></p>
           </div>
           <div className="flex items-center gap-3">
             <Button

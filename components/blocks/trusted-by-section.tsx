@@ -77,7 +77,7 @@ export function TrustedBySection() {
           Built for job seekers applying to
         </p>
         <h2 className="text-center text-2xl sm:text-3xl font-bold text-foreground mb-8">
-          Companies that use ATS systems
+          Apply where hiring happens
         </h2>
 
         <div className="relative w-full max-w-3xl">

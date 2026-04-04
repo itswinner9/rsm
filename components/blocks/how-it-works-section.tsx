@@ -26,14 +26,14 @@ const steps = [
         icon: Sparkles,
         title: 'Get one tailored resume + insights',
         description:
-            'Resumify rewrites one ATS-focused master resume for that role, shows honest gaps and strengths, then previews it in three professional layouts.',
+            'Resumify rewrites one tailored resume for that role, shows honest gaps and strengths, then previews it in several professional layouts.',
     },
     {
         number: '04',
         icon: Download,
         title: 'Choose a layout & export',
         description:
-            'Compare five layouts (classic through minimal). Export PDF or DOCX from whichever look you like—the content stays the same, optimized for scanners and recruiters.',
+            'Compare multiple layouts (classic through minimal). Export PDF or DOCX from whichever look you like—the content stays the same, written for clarity and the role you chose.',
     },
 ];
 

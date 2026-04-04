@@ -158,10 +158,12 @@ export function HeroSection() {
                                     </Link>
 
                                     <h1 className="mt-8 max-w-4xl mx-auto text-balance text-6xl md:text-7xl lg:mt-16 xl:text-[5.25rem]">
-                                        Fit your resume to every job—without starting over
+                                        A resume builder that gets you job-ready—not generic
                                     </h1>
                                     <p className="mx-auto mt-8 max-w-2xl text-balance text-lg">
-                                        Resumify aligns your real experience to each posting—keyword match scores, AI-tuned wording, and three ATS-ready layouts. Export PDF or DOCX and apply with confidence.
+                                        Tailor your real experience to each posting: keyword overlap with the job text,
+                                        clearer AI-tuned wording, and multiple professional layouts. Export PDF or DOCX when
+                                        you&apos;re ready to apply.
                                     </p>
                                 </AnimatedGroup>
 

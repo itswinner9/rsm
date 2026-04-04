@@ -6,7 +6,8 @@ import { siteDescription, openGraphDefaults } from "@/lib/site-metadata";
 
 export const metadata: Metadata = {
   title: "Resume builder",
-  description: "Upload your resume, paste a job description, and get ATS-optimized layouts with PDF and DOCX export.",
+  description:
+    "Upload your resume, paste a job description, and get job-tailored layouts with PDF and DOCX export.",
   openGraph: {
     ...openGraphDefaults,
     title: "Resume builder",

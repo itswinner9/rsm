@@ -150,15 +150,20 @@ export function AppShell({ children, userEmail, isPro, planSummary }: AppShellPr
 
     if (summary === "trial") {
       return (
-        <div className="mx-2 mb-2 rounded-xl border border-primary/15 bg-primary/[0.04] px-3 py-2.5">
+        <div className="mx-2 mb-2 rounded-xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/[0.06] to-primary/[0.03] px-3 py-2.5 shadow-sm shadow-emerald-500/5">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
-              <Crown className="size-3.5 text-primary shrink-0" strokeWidth={1.25} />
-              <span className="text-xs font-semibold text-foreground truncate">Trial · limited/day</span>
+              <div className="flex size-7 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">
+                <Crown className="size-3.5 shrink-0" strokeWidth={1.25} />
+              </div>
+              <div className="min-w-0">
+                <span className="text-xs font-semibold text-foreground truncate block">Pro trial</span>
+                <span className="text-[10px] text-muted-foreground">1 run / UTC day</span>
+              </div>
             </div>
             <Link
               href="/profile"
-              className="text-[11px] text-muted-foreground hover:text-foreground transition-colors shrink-0"
+              className="text-[11px] font-medium text-primary hover:text-primary/90 transition-colors shrink-0"
             >
               Billing
             </Link>
@@ -169,15 +174,20 @@ export function AppShell({ children, userEmail, isPro, planSummary }: AppShellPr
 
     if (summary === "active") {
       return (
-        <div className="mx-2 mb-2 rounded-xl border border-primary/15 bg-primary/[0.04] px-3 py-2.5">
+        <div className="mx-2 mb-2 rounded-xl border border-violet-500/20 bg-gradient-to-br from-violet-500/[0.07] to-primary/[0.04] px-3 py-2.5 shadow-sm shadow-violet-500/5">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
-              <Crown className="size-3.5 text-primary shrink-0" strokeWidth={1.25} />
-              <span className="text-xs font-semibold text-foreground truncate">Pro · Unlimited</span>
+              <div className="flex size-7 items-center justify-center rounded-lg bg-violet-500/15 text-violet-700 dark:text-violet-300">
+                <Crown className="size-3.5 shrink-0" strokeWidth={1.25} />
+              </div>
+              <div className="min-w-0">
+                <span className="text-xs font-semibold text-foreground truncate block">Pro</span>
+                <span className="text-[10px] text-muted-foreground">Unlimited runs</span>
+              </div>
             </div>
             <Link
               href="/profile"
-              className="text-[11px] text-muted-foreground hover:text-foreground transition-colors shrink-0"
+              className="text-[11px] font-medium text-primary hover:text-primary/90 transition-colors shrink-0"
             >
               Billing
             </Link>

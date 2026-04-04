@@ -14,7 +14,7 @@ const canonical = siteUrl();
 export const metadata: Metadata = {
   metadataBase: new URL(canonical),
   title: {
-    default: `${SITE_NAME} — ATS resume optimizer | ${SITE_DOMAIN}`,
+    default: `${SITE_NAME} — AI resume builder for every job | ${SITE_DOMAIN}`,
     template: `%s · ${SITE_NAME}`,
   },
   description: siteDescription,
@@ -24,13 +24,13 @@ export const metadata: Metadata = {
   },
   openGraph: {
     ...openGraphDefaults,
-    title: `${SITE_NAME} — ATS resume optimizer`,
+    title: `${SITE_NAME} — AI resume builder for every job`,
     description: siteDescription,
     url: canonical,
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SITE_NAME} — ATS resume optimizer`,
+    title: `${SITE_NAME} — AI resume builder for every job`,
     description: siteDescription,
   },
   robots: {

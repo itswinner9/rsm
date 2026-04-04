@@ -5,6 +5,7 @@ import { CheckCircle, FileCheck, Layers, GraduationCap, FileText } from "lucide-
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { stripHtmlFromText } from "@/lib/resume/sanitizeResumeText";
+import { presentationMatchScore } from "@/lib/resume/jdKeywordMatchScore";
 
 interface ResumeVersion {
   template: string;
@@ -28,6 +29,7 @@ const templateIcons: Record<string, React.ReactNode> = {
 };
 
 export function ResumeCard({ version, index, isSelected, onSelect, onPreview }: ResumeCardProps) {
+  const displayScore = presentationMatchScore(version.ats_score);
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -56,8 +58,8 @@ export function ResumeCard({ version, index, isSelected, onSelect, onPreview }: 
           <p className="text-xs text-muted-foreground">Version {index + 1}</p>
         </div>
         <div className="ml-auto text-right">
-          <span className="text-2xl font-bold text-primary">{version.ats_score}%</span>
-          <p className="text-xs text-muted-foreground">ATS score</p>
+          <span className="text-2xl font-bold text-primary">{displayScore}%</span>
+          <p className="text-xs text-muted-foreground">Job match score</p>
         </div>
       </div>
 
@@ -65,7 +67,7 @@ export function ResumeCard({ version, index, isSelected, onSelect, onPreview }: 
         <motion.div
           className="h-full rounded-full bg-primary"
           initial={{ width: 0 }}
-          animate={{ width: `${version.ats_score}%` }}
+          animate={{ width: `${displayScore}%` }}
           transition={{ duration: 0.85, ease: "easeOut", delay: index * 0.08 + 0.2 }}
         />
       </div>
