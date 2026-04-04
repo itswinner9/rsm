@@ -86,7 +86,7 @@ async function getData(searchParams?: DashboardSearchParams) {
   const checkoutSessionId = getCheckoutSessionId(searchParams);
 
   if (afterCheckout && checkoutSessionId) {
-    await syncStripeSubscriptionFromCheckoutSession(user.id, checkoutSessionId);
+    await syncStripeSubscriptionFromCheckoutSession(user.id, checkoutSessionId, user.email);
   }
 
   if (
@@ -94,7 +94,7 @@ async function getData(searchParams?: DashboardSearchParams) {
     !profileRow ||
     !hasPaidPlanAccess(profileRow.subscription_status)
   ) {
-    await syncStripeSubscriptionForUser(user.id);
+    await syncStripeSubscriptionForUser(user.id, user.email);
     profileRes = await supabase.from("user_profiles").select("*").eq("user_id", user.id).single();
   }
 

@@ -33,9 +33,10 @@ If `SUPABASE_SERVICE_ROLE_KEY` is missing, service-role features degrade (for ex
 | Variable | Role |
 |----------|------|
 | **`STRIPE_SECRET_KEY`** | Secret key (`sk_live_...` or `sk_test_...`) from Stripe Dashboard → Developers → API keys. Used for Checkout, webhooks, and subscription sync. **Server-only.** |
-| **`STRIPE_WEBHOOK_SECRET`** | Signing secret for the webhook endpoint that points to `/api/stripe/webhook` (Dashboard → Developers → Webhooks). |
+| **`STRIPE_WEBHOOK_SECRET`** | Signing secret for `POST /api/stripe/webhook`. Copy **Reveal secret** from the Stripe endpoint that matches your deployed URL (e.g. Workbench **Event destinations** or **Webhooks**). Must match the environment: use the **CLI** `whsec_…` from `stripe listen` for local forwarding only, not the production secret. |
 | **`STRIPE_PRICE_MONTHLY_CAD`** | Stripe **Price** ID (`price_...`) for the monthly CAD plan (Checkout when `plan` is `month`). Create recurring CAD prices in Dashboard — see [Stripe billing](stripe-billing.md) (*Creating Prices in the Dashboard*). |
 | **`STRIPE_PRICE_YEARLY_CAD`** | Price ID for the yearly CAD plan when `plan` is `year`. Same Dashboard steps; use **yearly** recurring Price ID. |
+| **`NEXT_PUBLIC_STRIPE_PAYMENT_LINK_MONTHLY`** | Optional. If set to a `https://buy.stripe.com/...` Payment Link, the **monthly** CTA uses that link instead of `POST /api/stripe/checkout`. **Yearly** still uses API Checkout. Use a **test** link with test keys and a **live** link in production. |
 | **`STRIPE_PRICE_MONTHLY_CENTS`** | Optional. If `STRIPE_PRICE_MONTHLY_CAD` is **unset**, Checkout uses inline pricing; this sets the monthly amount in **cents** (default `999` = $9.99 CAD). |
 | **`STRIPE_PRICE_YEARLY_CENTS`** | Optional. Same for yearly when `STRIPE_PRICE_YEARLY_CAD` is unset (default `9999` = $99.99 CAD). |
 
@@ -67,3 +68,4 @@ These are not usually set in `.env.local`:
 
 - [Stripe billing architecture](stripe-billing.md) — Checkout, webhooks, and why the Supabase Stripe **FDW** is not required.
 - [Production authentication (Supabase + Google)](production-auth.md) — Site URL, redirect URLs, and OAuth. Align **Site URL** with `NEXT_PUBLIC_APP_URL`.
+- [Free trial behavior](free-trial-behavior.md) — No-card welcome window vs Stripe trial; rules are enforced in `POST /api/optimize-resume`.

@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import type { OptimizedResumeData, ResumeTemplateId } from "@/lib/resume/types";
 import { ALL_TEMPLATE_IDS, TEMPLATE_META } from "@/lib/resume/types";
+import { showOptimizeForbiddenToast } from "@/lib/builder/optimizeForbiddenToast";
 
 interface TemplatePreviewMeta {
   id: ResumeTemplateId;
@@ -134,61 +135,7 @@ export default function BuilderPage() {
       const data = await response.json();
 
       if (response.status === 403) {
-        const err = typeof data.error === "string" ? data.error : "";
-        if (err === "subscription_required") {
-          toast({
-            title: "Subscription required",
-            description:
-              typeof data.message === "string"
-                ? data.message
-                : "Start your trial or subscribe on the plans page (card required).",
-            variant: "destructive",
-          });
-          router.push("/pricing");
-          return;
-        }
-        if (err === "trial_daily_limit") {
-          toast({
-            title: "Trial daily limit",
-            description:
-              typeof data.message === "string"
-                ? data.message
-                : "Trial includes one optimization per UTC day. Try again tomorrow or upgrade.",
-            variant: "destructive",
-          });
-          return;
-        }
-        if (err === "trial_ended") {
-          toast({
-            title: "Trial ended",
-            description:
-              typeof data.message === "string" ? data.message : "Update your subscription in billing to continue.",
-            variant: "destructive",
-          });
-          router.push("/pricing");
-          return;
-        }
-        if (err === "free_daily_limit" || err === "welcome_daily_limit") {
-          toast({
-            title: "Daily free limit",
-            description:
-              typeof data.message === "string"
-                ? data.message
-                : "One free optimization per UTC day. Try again tomorrow or upgrade.",
-            variant: "destructive",
-          });
-          return;
-        }
-        if (err === "free_trial_ended" || err === "free_cap_exceeded") {
-          toast({
-            title: err === "free_cap_exceeded" ? "Free plan finished" : "Free period ended",
-            description:
-              typeof data.message === "string"
-                ? data.message
-                : "Upgrade to continue optimizing resumes.",
-            variant: "destructive",
-          });
-          router.push("/pricing");
+        if (showOptimizeForbiddenToast((path) => void router.push(path), data)) {
           return;
         }
       }

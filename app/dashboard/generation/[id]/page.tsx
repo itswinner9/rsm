@@ -35,7 +35,7 @@ async function getData(id: string) {
 
   let profileRes = await supabase.from("user_profiles").select("*").eq("user_id", user.id).single();
   if (!profileRes.data || !hasPaidPlanAccess(profileRes.data.subscription_status)) {
-    await syncStripeSubscriptionForUser(user.id);
+    await syncStripeSubscriptionForUser(user.id, user.email);
     profileRes = await supabase.from("user_profiles").select("*").eq("user_id", user.id).single();
   }
 

@@ -79,7 +79,7 @@ async function getData() {
 
   let p = profile;
   if (!p || !hasPaidPlanAccess(p.subscription_status)) {
-    await syncStripeSubscriptionForUser(user.id);
+    await syncStripeSubscriptionForUser(user.id, user.email);
     const { data: fresh } = await supabase.from("user_profiles").select("*").eq("user_id", user.id).single();
     p = fresh ?? p;
   }

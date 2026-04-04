@@ -13,6 +13,10 @@ export type UserSubscriptionState = {
   profileReady: boolean;
   /** True while auth not ready, or logged in and profile not ready. */
   loading: boolean;
+  /** Supabase user id when logged in — used for Payment Link `client_reference_id`. */
+  userId: string | null;
+  /** Auth email when logged in — used for Payment Link prefilled email and Stripe sync. */
+  userEmail: string | null;
   isLoggedIn: boolean;
   /** Stripe trial or paid. */
   hasPaidAccess: boolean;
@@ -45,6 +49,8 @@ export type UserSubscriptionResult = UserSubscriptionState & {
 };
 
 const loggedOut: Omit<UserSubscriptionState, "authReady" | "profileReady" | "loading"> = {
+  userId: null,
+  userEmail: null,
   isLoggedIn: false,
   hasPaidAccess: false,
   hasOptimizationAccess: false,
@@ -71,7 +77,10 @@ function buildStateFromProfile(data: {
   free_trial_ends_at?: string | null;
   last_free_use_date?: string | null;
   total_free_uses?: number | null;
-}): Omit<UserSubscriptionState, "authReady" | "profileReady" | "loading" | "isLoggedIn"> {
+}): Omit<
+  UserSubscriptionState,
+  "authReady" | "profileReady" | "loading" | "isLoggedIn" | "userId" | "userEmail"
+> {
   const subscription_status =
     typeof data.subscription_status === "string" ? data.subscription_status : null;
   const trialEnd =
@@ -142,6 +151,9 @@ export function useUserSubscription(options?: UseUserSubscriptionOptions): UserS
         return;
       }
 
+      const uid = session.user.id;
+      const email = typeof session.user.email === "string" ? session.user.email : null;
+
       if (!opts.sessionKnown) {
         setState((s) => ({
           ...s,
@@ -149,9 +161,17 @@ export function useUserSubscription(options?: UseUserSubscriptionOptions): UserS
           profileReady: false,
           loading: true,
           isLoggedIn: true,
+          userId: uid,
+          userEmail: email,
         }));
       } else {
-        setState((s) => ({ ...s, profileReady: false, loading: true }));
+        setState((s) => ({
+          ...s,
+          profileReady: false,
+          loading: true,
+          userId: uid,
+          userEmail: email,
+        }));
       }
 
       try {
@@ -217,6 +237,8 @@ export function useUserSubscription(options?: UseUserSubscriptionOptions): UserS
           profileReady: true,
           loading: false,
           isLoggedIn: true,
+          userId: uid,
+          userEmail: email,
           ...fields,
         });
       } catch {
@@ -226,6 +248,8 @@ export function useUserSubscription(options?: UseUserSubscriptionOptions): UserS
             profileReady: true,
             loading: false,
             isLoggedIn: true,
+            userId: uid,
+            userEmail: email,
             hasPaidAccess: false,
             hasOptimizationAccess: false,
             freePlanBlockedCode: null,

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
+import { findAuthUserIdByEmail } from "@/lib/supabase/findAuthUserIdByEmail";
+import { getStripeCheckoutSessionBillingEmail } from "@/lib/stripe/syncSubscription";
 import { getStripe, mapStripeSubscriptionStatus } from "@/lib/stripe/server";
 
 export const dynamic = "force-dynamic";
@@ -63,7 +65,17 @@ export async function POST(request: Request) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        const userId = session.client_reference_id || session.metadata?.supabase_user_id;
+        let userId =
+          (typeof session.client_reference_id === "string" && session.client_reference_id) ||
+          (typeof session.metadata?.supabase_user_id === "string" && session.metadata.supabase_user_id) ||
+          null;
+        if (!userId && admin) {
+          const billingEmail = await getStripeCheckoutSessionBillingEmail(stripe, session);
+          if (billingEmail) {
+            const resolved = await findAuthUserIdByEmail(admin, billingEmail);
+            if (resolved) userId = resolved;
+          }
+        }
         const customerRaw = session.customer;
         const customerId =
           typeof customerRaw === "string" ? customerRaw : customerRaw && "id" in customerRaw ? customerRaw.id : null;
@@ -104,6 +116,13 @@ export async function POST(request: Request) {
             .eq("stripe_customer_id", customerId)
             .maybeSingle();
           userId = row?.user_id ?? null;
+        }
+        // Payment Links: no metadata — match Stripe customer billing email to Supabase auth user.
+        if (!userId) {
+          const cust = await stripe.customers.retrieve(customerId);
+          if (!cust.deleted && "email" in cust && typeof cust.email === "string" && cust.email.trim()) {
+            userId = await findAuthUserIdByEmail(admin, cust.email);
+          }
         }
 
         if (userId) {

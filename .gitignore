@@ -12,6 +12,4 @@ out/
 # OS / editor
 .DS_Store
 *.log
-.env
-.env.local
 .pillow-tmp/

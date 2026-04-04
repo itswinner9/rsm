@@ -3,13 +3,36 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
 import { getStripe, mapStripeSubscriptionStatus } from "@/lib/stripe/server";
 
+/** Exported for Stripe webhook when linking Payment Link checkouts by email. */
+export async function getStripeCheckoutSessionBillingEmail(
+  stripe: ReturnType<typeof getStripe>,
+  session: Stripe.Checkout.Session
+): Promise<string | null> {
+  const fromSession =
+    (typeof session.customer_email === "string" && session.customer_email.trim()) ||
+    (typeof session.customer_details?.email === "string" && session.customer_details.email.trim()) ||
+    null;
+  if (fromSession) return fromSession;
+  const customerRaw = session.customer;
+  const customerId =
+    typeof customerRaw === "string" ? customerRaw : customerRaw && "id" in customerRaw ? customerRaw.id : null;
+  if (!customerId) return null;
+  const cust = await stripe.customers.retrieve(customerId);
+  if (cust.deleted || !("email" in cust) || !cust.email) return null;
+  return cust.email;
+}
+
 /**
  * Apply subscription + customer ids from a completed Checkout Session (same data as webhook, but
  * runs on redirect when webhooks are delayed and profile has no stripe_customer_id yet).
+ *
+ * `userEmail` — when set, allows matching Payment Link / Checkout sessions that have no
+ * `client_reference_id` or `metadata.supabase_user_id` but use the same email as the logged-in user.
  */
 export async function syncStripeSubscriptionFromCheckoutSession(
   supabaseUserId: string,
-  checkoutSessionId: string
+  checkoutSessionId: string,
+  userEmail?: string | null
 ): Promise<boolean> {
   if (!checkoutSessionId.startsWith("cs_")) {
     return false;
@@ -28,8 +51,19 @@ export async function syncStripeSubscriptionFromCheckoutSession(
     const ref = session.client_reference_id;
     const metaUid =
       typeof session.metadata?.supabase_user_id === "string" ? session.metadata.supabase_user_id : null;
-    if (ref !== supabaseUserId && metaUid !== supabaseUserId) {
-      console.warn("[stripe/sync] checkout session does not match current user");
+    const matchByRef = ref === supabaseUserId || metaUid === supabaseUserId;
+    let matchByEmail = false;
+    if (!matchByRef && userEmail?.trim()) {
+      const billingEmail = await getStripeCheckoutSessionBillingEmail(stripe, session);
+      if (
+        billingEmail &&
+        billingEmail.trim().toLowerCase() === userEmail.trim().toLowerCase()
+      ) {
+        matchByEmail = true;
+      }
+    }
+    if (!matchByRef && !matchByEmail) {
+      console.warn("[stripe/sync] checkout session does not match current user (ref/metadata/email)");
       return false;
     }
 
@@ -80,8 +114,12 @@ export async function syncStripeSubscriptionFromCheckoutSession(
 
 /**
  * Pull Stripe subscription for this user and update user_profiles (e.g. after checkout before webhook lands).
+ * When `stripe_customer_id` is missing but `userEmail` is set (Payment Link), looks up Stripe customers by email.
  */
-export async function syncStripeSubscriptionForUser(supabaseUserId: string): Promise<boolean> {
+export async function syncStripeSubscriptionForUser(
+  supabaseUserId: string,
+  userEmail?: string | null
+): Promise<boolean> {
   const supabase = createClient();
   const admin = createServiceRoleClient();
   const db = admin ?? supabase;
@@ -92,14 +130,49 @@ export async function syncStripeSubscriptionForUser(supabaseUserId: string): Pro
     .eq("user_id", supabaseUserId)
     .maybeSingle();
 
-  if (!profile?.stripe_customer_id) {
-    return false;
-  }
+  let stripeCustomerId = profile?.stripe_customer_id?.trim() || null;
 
   try {
     const stripe = getStripe();
+
+    if (!stripeCustomerId && userEmail?.trim()) {
+      const customers = await stripe.customers.list({
+        email: userEmail.trim(),
+        limit: 10,
+      });
+      let pickedCustomerId: string | null = null;
+      for (const c of customers.data) {
+        const subs = await stripe.subscriptions.list({
+          customer: c.id,
+          status: "all",
+          limit: 10,
+        });
+        if (subs.data.length > 0) {
+          pickedCustomerId = c.id;
+          break;
+        }
+      }
+      if (!pickedCustomerId && customers.data[0]?.id) {
+        pickedCustomerId = customers.data[0].id;
+      }
+      if (pickedCustomerId) {
+        stripeCustomerId = pickedCustomerId;
+        await db
+          .from("user_profiles")
+          .update({
+            stripe_customer_id: stripeCustomerId,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("user_id", supabaseUserId);
+      }
+    }
+
+    if (!stripeCustomerId) {
+      return false;
+    }
+
     const list = await stripe.subscriptions.list({
-      customer: profile.stripe_customer_id,
+      customer: stripeCustomerId,
       status: "all",
       limit: 10,
     });

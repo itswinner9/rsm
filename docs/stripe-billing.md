@@ -44,6 +44,10 @@ Add your public URL:
 
 `https://<your-domain>/api/stripe/webhook`
 
+Production example: `https://resumify.cc/api/stripe/webhook`.
+
+Stripe may show this under **Developers → Workbench → Event destinations** (or classic **Webhooks**). The destination’s **Signing secret** (`whsec_…`) must be set as **`STRIPE_WEBHOOK_SECRET`** on Vercel (or `.env.local` locally). That value is **different** from the secret printed by `stripe listen` — use the Dashboard/destination secret for deployed URLs, and the CLI secret only while forwarding to localhost.
+
 Subscribe to at least:
 
 - `checkout.session.completed`
@@ -51,7 +55,21 @@ Subscribe to at least:
 - `customer.subscription.updated`
 - `customer.subscription.deleted`
 
-Use the signing secret as `STRIPE_WEBHOOK_SECRET`.
+## Payment Links (monthly) + return to the app
+
+If you use **`NEXT_PUBLIC_STRIPE_PAYMENT_LINK_MONTHLY`**, configure the link in Stripe:
+
+1. **After payment** — set the customer-facing completion to **redirect** to your app, e.g.  
+   `https://resumify.cc/dashboard?success=true`  
+   (Use your real domain; local dev: `http://localhost:3002/dashboard?success=true`.)
+
+2. The app appends **`client_reference_id`** (Supabase user id) and **`prefilled_email`** when the user is logged in, so `checkout.session.completed` can update `user_profiles` immediately.
+
+3. On `/dashboard?success=true`, the server runs **Stripe sync** and the **Payment success** banner polls **`POST /api/stripe/sync`** until subscription data is ready.
+
+## Managed Payments (sandbox / production)
+
+If Checkout uses [Managed Payments](https://docs.stripe.com/payments/checkout/managed-payments), charges may show tax lines, processing fees, and a statement descriptor such as **`LINK.COM* …`** on the receipt. That is expected Stripe behavior, not an app bug. Subscription rows still use your **Price** IDs (`price_…`); the payment breakdown in the Dashboard reflects tax and fees.
 
 ## Production checklist
 

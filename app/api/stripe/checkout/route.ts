@@ -72,20 +72,16 @@ export async function POST(request: Request) {
 
     const origin = getAppOrigin();
 
-    // Managed Payments: do not set payment_method_collection / payment_method_types / automatic_tax / etc.
-    // SDK types may lag preview fields — see Stripe API 2026-02-25.preview.
-    const base: Stripe.Checkout.SessionCreateParams & {
-      managed_payments: { enabled: boolean };
-    } = {
+    // Shared fields for subscription Checkout. Managed Payments uses `managed_payments` (API 2026-02-25.preview)
+    // and must not set `payment_method_collection`. If Stripe returns "unknown parameter: managed_payments"
+    // (account not on preview / ToS not accepted / wrong API version), fall back to standard Checkout.
+    const shared: Stripe.Checkout.SessionCreateParams = {
       mode: "subscription",
       client_reference_id: user.id,
       line_items: lineItems,
       success_url: `${origin}/dashboard?success=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/pricing?checkout=canceled`,
       allow_promotion_codes: true,
-      managed_payments: {
-        enabled: true,
-      },
       subscription_data: {
         trial_period_days: TRIAL_DAYS,
         metadata: { supabase_user_id: user.id },
@@ -95,14 +91,48 @@ export async function POST(request: Request) {
       },
     };
 
+    const withCustomer = (
+      extra: { customer: string } | { customer_email: string }
+    ): Stripe.Checkout.SessionCreateParams => ({ ...shared, ...extra });
+
+    const managedParams = (
+      extra: { customer: string } | { customer_email: string }
+    ): Stripe.Checkout.SessionCreateParams & { managed_payments: { enabled: boolean } } => ({
+      ...withCustomer(extra),
+      managed_payments: { enabled: true },
+    });
+
+    const standardParams = (
+      extra: { customer: string } | { customer_email: string }
+    ): Stripe.Checkout.SessionCreateParams => ({
+      ...withCustomer(extra),
+      payment_method_collection: "always",
+    });
+
+    const createSessionRespectingManagedPayments = async (
+      extra: { customer: string } | { customer_email: string }
+    ): Promise<Stripe.Checkout.Session> => {
+      try {
+        return await stripe.checkout.sessions.create(managedParams(extra));
+      } catch (e: unknown) {
+        const msg = extractStripeErrorMessage(e);
+        if (/unknown\s+parameter/i.test(msg) && /managed_payments/i.test(msg)) {
+          console.warn(
+            "[stripe/checkout] managed_payments not accepted; using standard Checkout with payment_method_collection:",
+            msg
+          );
+          return stripe.checkout.sessions.create(standardParams(extra));
+        }
+        throw e;
+      }
+    };
+
     const customerId = profileRow?.stripe_customer_id?.trim();
     let session: Stripe.Checkout.Session;
 
     try {
-      session = await stripe.checkout.sessions.create(
-        customerId
-          ? { ...base, customer: customerId }
-          : { ...base, customer_email: user.email }
+      session = await createSessionRespectingManagedPayments(
+        customerId ? { customer: customerId } : { customer_email: user.email }
       );
     } catch (first: unknown) {
       const msg = extractStripeErrorMessage(first);
@@ -117,10 +147,7 @@ export async function POST(request: Request) {
           .update({ stripe_customer_id: null, updated_at: new Date().toISOString() })
           .eq("user_id", user.id);
       }
-      session = await stripe.checkout.sessions.create({
-        ...base,
-        customer_email: user.email,
-      });
+      session = await createSessionRespectingManagedPayments({ customer_email: user.email });
     }
 
     if (!session.url) {

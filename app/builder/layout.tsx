@@ -27,7 +27,7 @@ export default async function BuilderLayout({ children }: { children: React.Reac
       .eq("user_id", user.id)
       .maybeSingle();
     if (!row || !hasPaidPlanAccess(row.subscription_status)) {
-      await syncStripeSubscriptionForUser(user.id);
+      await syncStripeSubscriptionForUser(user.id, user.email);
     }
   }
   return <>{children}</>;

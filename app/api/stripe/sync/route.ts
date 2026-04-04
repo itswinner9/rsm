@@ -29,12 +29,12 @@ export async function POST(request: Request) {
   }
 
   if (sessionId) {
-    const active = await syncStripeSubscriptionFromCheckoutSession(user.id, sessionId);
+    const active = await syncStripeSubscriptionFromCheckoutSession(user.id, sessionId, user.email);
     if (active) {
       return NextResponse.json({ active: true });
     }
   }
 
-  const active = await syncStripeSubscriptionForUser(user.id);
+  const active = await syncStripeSubscriptionForUser(user.id, user.email);
   return NextResponse.json({ active });
 }

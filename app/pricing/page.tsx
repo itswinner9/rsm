@@ -40,16 +40,21 @@ export default function PricingPage() {
   const { toast } = useToast();
   const subscription = useUserSubscription();
 
+  const checkoutCtx =
+    subscription.isLoggedIn && subscription.userId
+      ? { userId: subscription.userId, email: subscription.userEmail }
+      : undefined;
+
   const handleUpgrade = async (plan: "month" | "year") => {
     setLoadingPlan(plan);
     try {
-      const { ok, error } = await startStripeCheckout(plan);
+      const { ok, error } = await startStripeCheckout(plan, checkoutCtx);
       if (!ok) {
         toast({
           title: "Checkout couldn’t start",
           description: error || "Please try again.",
           variant: "destructive",
-          duration: error && error.length > 120 ? 14_000 : 6_000,
+          duration: typeof error === "string" && error.length > 120 ? 14_000 : 6_000,
         });
       }
     } finally {

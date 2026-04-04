@@ -1,6 +1,9 @@
 /**
- * Free plan (no card): up to 3 optimizations, at most 1 per UTC day,
- * within 72h from first free use. Enforced server-side in optimize-resume.
+ * Free plan (no card) — **welcome window**, separate from Stripe trial:
+ * up to 3 optimizations, at most 1 per UTC day, within the window from first free use.
+ * Enforced server-side in `POST /api/optimize-resume`. See `docs/free-trial-behavior.md`.
+ *
+ * Stripe **trialing** (card on file) uses different columns and `trial_daily_optimizations`.
  */
 
 export type FreePlanRow = {

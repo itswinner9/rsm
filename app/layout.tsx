@@ -6,6 +6,7 @@ import { SITE_DOMAIN, SITE_NAME } from "@/lib/site-nav";
 import { openGraphDefaults, siteDescription, siteKeywords, siteUrl } from "@/lib/site-metadata";
 import { SiteJsonLd } from "@/components/seo/site-json-ld";
 import { RegisterDeviceOnLogin } from "@/components/auth/register-device-on-login";
+import { SubscriptionWelcomeToast } from "@/components/subscription/subscription-welcome-toast";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -49,6 +50,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <SiteJsonLd />
         <RegisterDeviceOnLogin />
+        <SubscriptionWelcomeToast />
         {children}
         <Toaster />
       </body>
