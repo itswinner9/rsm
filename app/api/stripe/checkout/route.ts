@@ -77,7 +77,7 @@ export async function POST(request: Request) {
       payment_method_collection: "always",
       client_reference_id: user.id,
       line_items: lineItems,
-      success_url: `${origin}/profile?checkout=success`,
+      success_url: `${origin}/dashboard?success=true`,
       cancel_url: `${origin}/pricing?checkout=canceled`,
       allow_promotion_codes: true,
       subscription_data: {

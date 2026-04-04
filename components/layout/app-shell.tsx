@@ -27,7 +27,7 @@ const navGroups: {
     label: "Product",
     items: [
       { label: "Recent", href: "/dashboard", icon: History },
-      { label: "Builder", href: "/builder", icon: Sparkles },
+      { label: "Resume builder", href: "/builder", icon: Sparkles },
     ],
   },
   {
@@ -44,7 +44,7 @@ const navGroups: {
 ];
 
 /** Sidebar subscription footer aligned with builder plan strip. */
-export type AppShellPlanSummary = "loading" | "none" | "trial" | "active";
+export type AppShellPlanSummary = "loading" | "none" | "welcome" | "trial" | "active";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -125,6 +125,25 @@ export function AppShell({ children, userEmail, isPro, planSummary }: AppShellPr
         <div className="mx-2 mb-2 rounded-xl border border-border bg-muted/30 px-3 py-3">
           <div className="h-3 w-36 rounded bg-muted/80 animate-pulse mb-2" />
           <div className="h-8 w-full rounded-full bg-muted/60 animate-pulse" />
+        </div>
+      );
+    }
+
+    if (summary === "welcome") {
+      return (
+        <div className="mx-2 mb-2 rounded-xl border border-primary/15 bg-primary/[0.04] px-3 py-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <Sparkles className="size-3.5 text-primary shrink-0" strokeWidth={1.25} />
+              <span className="text-xs font-semibold text-foreground truncate">Welcome · 1/day (3 days)</span>
+            </div>
+            <Link
+              href="/pricing"
+              className="text-[11px] text-muted-foreground hover:text-foreground transition-colors shrink-0"
+            >
+              Upgrade
+            </Link>
+          </div>
         </div>
       );
     }

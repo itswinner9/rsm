@@ -1,31 +1,25 @@
 import Link from "next/link";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
-/** Gradient mark; `gradientIdSuffix` avoids duplicate SVG defs when header + footer both render. */
+/** Logo mark (PNG). `gradientIdSuffix` kept for API compatibility with older call sites. */
 export function ResumifyMark({
   className,
-  gradientIdSuffix = "a",
+  gradientIdSuffix: _gradientIdSuffix = "a",
 }: {
   className?: string;
+  /** @deprecated Unused; SVG gradients replaced by brand PNG. */
   gradientIdSuffix?: string;
 }) {
-  const gid = `resumify-mark-grad-${gradientIdSuffix}`;
   return (
-    <svg
-      viewBox="0 0 24 18"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={cn("h-5 w-auto shrink-0", className)}
-      aria-hidden
-    >
-      <path d="M3 0H5V18H3V0ZM13 0H15V18H13V0ZM18 3V5H0V3H18ZM0 15V13H18V15H0Z" fill={`url(#${gid})`} />
-      <defs>
-        <linearGradient id={gid} x1="10" y1="0" x2="10" y2="20" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#9B99FE" />
-          <stop offset="1" stopColor="#2BC8B7" />
-        </linearGradient>
-      </defs>
-    </svg>
+    <Image
+      src="/logor.png"
+      alt=""
+      width={36}
+      height={36}
+      className={cn("h-8 w-8 shrink-0 object-contain", className)}
+      priority
+    />
   );
 }
 

@@ -2,7 +2,8 @@
 
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { Upload, FileText, X, CheckCircle, Loader2, ClipboardPaste } from "lucide-react";
+import { Upload, FileText, X, CheckCircle, Loader2, ClipboardPaste, PenLine } from "lucide-react";
+import { ScratchResumeForm } from "@/components/builder/ScratchResumeForm";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -14,7 +15,7 @@ interface UploadSectionProps {
 const iconMuted = "text-muted-foreground";
 
 export function UploadSection({ onParsed, isLoading }: UploadSectionProps) {
-  const [tab, setTab] = useState<"upload" | "paste">("upload");
+  const [tab, setTab] = useState<"upload" | "paste" | "scratch">("upload");
 
   const [file, setFile] = useState<File | null>(null);
   const [parsing, setParsing] = useState(false);
@@ -23,6 +24,7 @@ export function UploadSection({ onParsed, isLoading }: UploadSectionProps) {
 
   const [pasteText, setPasteText] = useState("");
   const [pasteSubmitted, setPasteSubmitted] = useState(false);
+  const [scratchSubmitted, setScratchSubmitted] = useState(false);
 
   const handleFile = useCallback(
     async (acceptedFile: File) => {
@@ -95,7 +97,7 @@ export function UploadSection({ onParsed, isLoading }: UploadSectionProps) {
 
   return (
     <div className="space-y-3">
-      <div className="flex rounded-2xl border border-border bg-card/50 p-1 gap-1">
+      <div className="grid grid-cols-1 sm:grid-cols-3 rounded-2xl border border-border bg-card/50 p-1 gap-1">
         <button
           type="button"
           onClick={() => {
@@ -103,7 +105,7 @@ export function UploadSection({ onParsed, isLoading }: UploadSectionProps) {
             setError(null);
           }}
           className={cn(
-            "flex-1 flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-medium transition-colors min-h-11",
+            "flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-medium transition-colors min-h-11",
             tab === "upload"
               ? "bg-muted text-foreground"
               : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
@@ -119,7 +121,7 @@ export function UploadSection({ onParsed, isLoading }: UploadSectionProps) {
             setError(null);
           }}
           className={cn(
-            "flex-1 flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-medium transition-colors min-h-11",
+            "flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-medium transition-colors min-h-11",
             tab === "paste"
               ? "bg-muted text-foreground"
               : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
@@ -127,6 +129,22 @@ export function UploadSection({ onParsed, isLoading }: UploadSectionProps) {
         >
           <ClipboardPaste className="size-4 shrink-0" strokeWidth={1.25} />
           Paste text
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setTab("scratch");
+            setError(null);
+          }}
+          className={cn(
+            "flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-medium transition-colors min-h-11",
+            tab === "scratch"
+              ? "bg-muted text-foreground"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
+          )}
+        >
+          <PenLine className="size-4 shrink-0" strokeWidth={1.25} />
+          From scratch
         </button>
       </div>
 
@@ -194,6 +212,32 @@ export function UploadSection({ onParsed, isLoading }: UploadSectionProps) {
             </div>
           )}
         </>
+      )}
+
+      {tab === "scratch" && (
+        <div className="space-y-3">
+          {scratchSubmitted ? (
+            <div className="flex flex-col items-center gap-3 py-6">
+              <CheckCircle className="w-10 h-10 text-emerald-400/90" strokeWidth={1.25} />
+              <p className="text-foreground font-medium text-sm">Resume draft saved</p>
+              <button
+                type="button"
+                onClick={() => setScratchSubmitted(false)}
+                className="text-muted-foreground hover:text-foreground text-xs underline underline-offset-2"
+              >
+                Edit from scratch again
+              </button>
+            </div>
+          ) : (
+            <ScratchResumeForm
+              disabled={!!isLoading}
+              onComplete={(text, uploadId, fileName) => {
+                setScratchSubmitted(true);
+                onParsed(text, uploadId, fileName);
+              }}
+            />
+          )}
+        </div>
       )}
 
       {tab === "paste" && (

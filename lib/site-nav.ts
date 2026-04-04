@@ -13,10 +13,10 @@ export const marketingNavLinks: SiteNavLink[] = [
   { label: "About", href: "/about" },
 ];
 
-/** Marketing anchors + Builder (footer “Explore” column). */
+/** Marketing anchors + resume builder (footer “Explore” column). */
 export const footerExploreLinks: SiteNavLink[] = [
   ...marketingNavLinks,
-  { label: "Builder", href: "/builder" },
+  { label: "Resume builder", href: "/builder" },
 ];
 
 /** Primary app entry from marketing header. */

@@ -8,6 +8,7 @@ import { GenerationDetail } from "@/components/dashboard/GenerationDetail";
 import { syncStripeSubscriptionForUser } from "@/lib/stripe/syncSubscription";
 import { hasPaidPlanAccess } from "@/lib/subscription/access";
 import { planSummaryFromStatus } from "@/lib/subscription/appShellPlan";
+import type { FreePlanRow } from "@/lib/subscription/freePlan";
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   const supabase = createClient();
@@ -56,8 +57,17 @@ async function getData(id: string) {
 
 export default async function GenerationPage({ params }: { params: { id: string } }) {
   const { user, profile, gen } = await getData(params.id);
+  const freePlanRow: FreePlanRow = {
+    free_trial_started_at: profile?.free_trial_started_at ?? null,
+    free_trial_ends_at: profile?.free_trial_ends_at ?? null,
+    last_free_use_date: profile?.last_free_use_date ?? null,
+    total_free_uses: profile?.total_free_uses ?? null,
+  };
   return (
-    <AppShell userEmail={user.email} planSummary={planSummaryFromStatus(profile?.subscription_status)}>
+    <AppShell
+      userEmail={user.email}
+      planSummary={planSummaryFromStatus(profile?.subscription_status, freePlanRow)}
+    >
       <div className="max-w-6xl mx-auto space-y-8">
         <nav className="flex items-center gap-2 text-sm" aria-label="Breadcrumb">
           <Link

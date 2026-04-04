@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { hasPaidPlanAccess } from "@/lib/subscription/access";
+import type { FreePlanRow } from "@/lib/subscription/freePlan";
+import { evaluateFreeOptimizationGate, freeWindowDaysLeft, hasFreePlanAccessPreview } from "@/lib/subscription/freePlan";
 
 export type UserSubscriptionState = {
   /** Session check finished (Supabase getSession). */
@@ -12,7 +14,17 @@ export type UserSubscriptionState = {
   /** True while auth not ready, or logged in and profile not ready. */
   loading: boolean;
   isLoggedIn: boolean;
+  /** Stripe trial or paid. */
   hasPaidAccess: boolean;
+  /** Can run optimize (paid, trial, or free plan). */
+  hasOptimizationAccess: boolean;
+  /**
+   * When not trialing/active and free gate blocks: daily limit, 3-run cap, or welcome window ended.
+   * Null if paid/trialing/active, or free gate allows a run.
+   */
+  freePlanBlockedCode: "free_trial_ended" | "free_daily_limit" | "free_cap_exceeded" | null;
+  isWelcome: boolean;
+  welcomeDaysLeft: number;
   isTrialing: boolean;
   isActive: boolean;
   subscriptionStatus: string | null;
@@ -35,6 +47,10 @@ export type UserSubscriptionResult = UserSubscriptionState & {
 const loggedOut: Omit<UserSubscriptionState, "authReady" | "profileReady" | "loading"> = {
   isLoggedIn: false,
   hasPaidAccess: false,
+  hasOptimizationAccess: false,
+  freePlanBlockedCode: null,
+  isWelcome: false,
+  welcomeDaysLeft: 0,
   isTrialing: false,
   isActive: false,
   subscriptionStatus: null,
@@ -51,6 +67,10 @@ const initial: UserSubscriptionState = {
 function buildStateFromProfile(data: {
   subscription_status?: string | null;
   subscription_trial_end?: string | null;
+  free_trial_started_at?: string | null;
+  free_trial_ends_at?: string | null;
+  last_free_use_date?: string | null;
+  total_free_uses?: number | null;
 }): Omit<UserSubscriptionState, "authReady" | "profileReady" | "loading" | "isLoggedIn"> {
   const subscription_status =
     typeof data.subscription_status === "string" ? data.subscription_status : null;
@@ -65,8 +85,29 @@ function buildStateFromProfile(data: {
         })
       : null;
 
+  const freeRow: FreePlanRow = {
+    free_trial_started_at: data.free_trial_started_at ?? null,
+    free_trial_ends_at: data.free_trial_ends_at ?? null,
+    last_free_use_date: data.last_free_use_date ?? null,
+    total_free_uses: data.total_free_uses ?? null,
+  };
+
+  const hasPaid = hasPaidPlanAccess(subscription_status);
+  const freeGate = hasPaid ? { ok: true as const } : evaluateFreeOptimizationGate(freeRow);
+  const isWelcome = hasFreePlanAccessPreview(subscription_status, freeRow);
+  const wDays = freeWindowDaysLeft(freeRow);
+
+  const freePlanBlockedCode =
+    hasPaid || freeGate.ok
+      ? null
+      : freeGate.code;
+
   return {
-    hasPaidAccess: hasPaidPlanAccess(subscription_status),
+    hasPaidAccess: hasPaid,
+    hasOptimizationAccess: hasPaid || freeGate.ok,
+    freePlanBlockedCode,
+    isWelcome,
+    welcomeDaysLeft: isWelcome ? wDays : 0,
     isTrialing: subscription_status === "trialing",
     isActive: subscription_status === "active",
     subscriptionStatus: subscription_status,
@@ -134,19 +175,42 @@ export function useUserSubscription(options?: UseUserSubscriptionOptions): UserS
 
         let subscription_status: string | null = null;
         let subscription_trial_end: string | null = null;
+        let free_trial_started_at: string | null = null;
+        let free_trial_ends_at: string | null = null;
+        let last_free_use_date: string | null = null;
+        let total_free_uses: number | null = null;
 
         if (res.ok) {
           const data = (await res.json()) as {
             subscription_status?: string | null;
             subscription_trial_end?: string | null;
+            free_trial_started_at?: string | null;
+            free_trial_ends_at?: string | null;
+            last_free_use_date?: string | null;
+            total_free_uses?: number | null;
           };
           subscription_status =
             typeof data.subscription_status === "string" ? data.subscription_status : null;
           subscription_trial_end =
             typeof data.subscription_trial_end === "string" ? data.subscription_trial_end : null;
+          free_trial_started_at =
+            typeof data.free_trial_started_at === "string" ? data.free_trial_started_at : null;
+          free_trial_ends_at =
+            typeof data.free_trial_ends_at === "string" ? data.free_trial_ends_at : null;
+          last_free_use_date =
+            typeof data.last_free_use_date === "string" ? data.last_free_use_date : null;
+          total_free_uses =
+            typeof data.total_free_uses === "number" ? data.total_free_uses : null;
         }
 
-        const fields = buildStateFromProfile({ subscription_status, subscription_trial_end });
+        const fields = buildStateFromProfile({
+          subscription_status,
+          subscription_trial_end,
+          free_trial_started_at,
+          free_trial_ends_at,
+          last_free_use_date,
+          total_free_uses,
+        });
 
         setState({
           authReady: true,
@@ -163,6 +227,10 @@ export function useUserSubscription(options?: UseUserSubscriptionOptions): UserS
             loading: false,
             isLoggedIn: true,
             hasPaidAccess: false,
+            hasOptimizationAccess: false,
+            freePlanBlockedCode: null,
+            isWelcome: false,
+            welcomeDaysLeft: 0,
             isTrialing: false,
             isActive: false,
             subscriptionStatus: null,

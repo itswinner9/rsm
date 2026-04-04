@@ -16,8 +16,9 @@ import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/layout/app-shell";
 import { DashboardClearSuccessQuery } from "@/components/dashboard/dashboard-clear-success-query";
 import { syncStripeSubscriptionForUser } from "@/lib/stripe/syncSubscription";
-import { hasPaidPlanAccess } from "@/lib/subscription/access";
+import { hasPaidPlanAccess, canStartOptimization } from "@/lib/subscription/access";
 import { planSummaryFromStatus } from "@/lib/subscription/appShellPlan";
+import type { FreePlanRow } from "@/lib/subscription/freePlan";
 import { parseResumeTemplateId, TEMPLATE_SHORT_LABEL } from "@/lib/resume/types";
 import { AtsTrendMini, type AtsTrendPoint } from "@/components/dashboard/AtsTrendMini";
 import type { Metadata } from "next";
@@ -58,7 +59,7 @@ function optimizedScoreForGen(gen: {
   return null;
 }
 
-async function getData() {
+async function getData(searchParams?: DashboardSearchParams) {
   const supabase = createClient();
   const {
     data: { user },
@@ -68,7 +69,12 @@ async function getData() {
   let profileRes = await supabase.from("user_profiles").select("*").eq("user_id", user.id).single();
 
   const profileRow = profileRes.data;
-  if (!profileRow || !hasPaidPlanAccess(profileRow.subscription_status)) {
+  const afterCheckout = paymentJustCompleted(searchParams);
+  if (
+    afterCheckout ||
+    !profileRow ||
+    !hasPaidPlanAccess(profileRow.subscription_status)
+  ) {
     await syncStripeSubscriptionForUser(user.id);
     profileRes = await supabase.from("user_profiles").select("*").eq("user_id", user.id).single();
   }
@@ -89,11 +95,17 @@ async function getData() {
 }
 
 export default async function DashboardPage({ searchParams }: { searchParams: DashboardSearchParams }) {
-  const { user, profile, generations, generationsTotalCount } = await getData();
+  const { user, profile, generations, generationsTotalCount } = await getData(searchParams);
   const showPaymentSuccess = paymentJustCompleted(searchParams);
 
   const isSubscribed = hasPaidPlanAccess(profile?.subscription_status);
-  const canGenerate = isSubscribed;
+  const freePlanRow: FreePlanRow = {
+    free_trial_started_at: profile?.free_trial_started_at ?? null,
+    free_trial_ends_at: profile?.free_trial_ends_at ?? null,
+    last_free_use_date: profile?.last_free_use_date ?? null,
+    total_free_uses: profile?.total_free_uses ?? null,
+  };
+  const canGenerate = canStartOptimization(profile?.subscription_status, freePlanRow);
 
   const scores = generations.map((g) => optimizedScoreForGen(g)).filter((n): n is number => n != null);
   const bestScore = scores.length ? Math.max(...scores) : null;
@@ -118,7 +130,10 @@ export default async function DashboardPage({ searchParams }: { searchParams: Da
       <Suspense fallback={null}>
         <DashboardClearSuccessQuery />
       </Suspense>
-      <AppShell userEmail={user.email} planSummary={planSummaryFromStatus(profile?.subscription_status)}>
+      <AppShell
+        userEmail={user.email}
+        planSummary={planSummaryFromStatus(profile?.subscription_status, freePlanRow)}
+      >
         <div className="max-w-4xl mx-auto space-y-10 pb-16">
           {showPaymentSuccess && (
             <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 flex gap-3">
@@ -140,12 +155,16 @@ export default async function DashboardPage({ searchParams }: { searchParams: Da
                         ? "Trial"
                         : isSubscribed
                           ? "Full access"
-                          : "Subscribe to run more"
+                          : canGenerate
+                            ? "Welcome · 1/day"
+                            : "Subscribe to run more"
                     }`
-                  : isSubscribed
-                    ? profile?.subscription_status === "trialing"
-                      ? "Trial · 1 run per UTC day"
-                      : "Full access"
+                  : canGenerate
+                    ? isSubscribed
+                      ? profile?.subscription_status === "trialing"
+                        ? "Trial · 1 run per UTC day"
+                        : "Full access"
+                      : "Welcome · 1 run per UTC day (3 days)"
                     : "Subscribe to optimize"}
               </p>
             </div>
@@ -297,7 +316,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Da
               <Button asChild className="rounded-full h-10 px-6 text-sm">
                 <Link href={isSubscribed ? "/builder" : "/pricing"}>
                   <Sparkles className="size-3.5 mr-2" strokeWidth={1.25} />
-                  {isSubscribed ? "Open builder" : "View plans"}
+                  {isSubscribed ? "Open resume builder" : "View plans"}
                 </Link>
               </Button>
             </div>
@@ -305,7 +324,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Da
 
           <footer className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-muted-foreground border-t border-border pt-8">
             <Link href="/builder" className="hover:text-foreground transition-colors">
-              Builder
+              Resume builder
             </Link>
             <Link href="/profile" className="hover:text-foreground transition-colors">
               Account

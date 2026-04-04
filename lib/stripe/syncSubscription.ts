@@ -37,6 +37,7 @@ export async function syncStripeSubscriptionForUser(supabaseUserId: string): Pro
         .from("user_profiles")
         .update({
           subscription_status: "inactive",
+          plan_type: "free",
           stripe_subscription_id: null,
           subscription_trial_end: null,
           subscription_current_period_end: null,
@@ -55,6 +56,7 @@ export async function syncStripeSubscriptionForUser(supabaseUserId: string): Pro
       .update({
         stripe_subscription_id: sub.id,
         subscription_status: status,
+        plan_type: status === "trialing" || status === "active" ? "pro" : "free",
         subscription_trial_end: trialEnd,
         subscription_current_period_end: periodEnd,
         updated_at: new Date().toISOString(),

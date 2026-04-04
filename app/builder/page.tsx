@@ -19,7 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import type { OptimizedResumeData, ResumeTemplateId } from "@/lib/resume/types";
-import { TEMPLATE_META } from "@/lib/resume/types";
+import { ALL_TEMPLATE_IDS, TEMPLATE_META } from "@/lib/resume/types";
 
 interface TemplatePreviewMeta {
   id: ResumeTemplateId;
@@ -44,7 +44,6 @@ interface OptimizeResult {
   improvements: string[];
 }
 
-const TEMPLATE_ORDER: ResumeTemplateId[] = ["classic", "executive", "compact"];
 
 function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
@@ -169,6 +168,29 @@ export default function BuilderPage() {
           router.push("/pricing");
           return;
         }
+        if (err === "free_daily_limit" || err === "welcome_daily_limit") {
+          toast({
+            title: "Daily free limit",
+            description:
+              typeof data.message === "string"
+                ? data.message
+                : "One free optimization per UTC day. Try again tomorrow or upgrade.",
+            variant: "destructive",
+          });
+          return;
+        }
+        if (err === "free_trial_ended" || err === "free_cap_exceeded") {
+          toast({
+            title: err === "free_cap_exceeded" ? "Free plan finished" : "Free period ended",
+            description:
+              typeof data.message === "string"
+                ? data.message
+                : "Upgrade to continue optimizing resumes.",
+            variant: "destructive",
+          });
+          router.push("/pricing");
+          return;
+        }
       }
       if (response.status === 503) {
         toast({
@@ -276,15 +298,27 @@ export default function BuilderPage() {
     }
   };
 
-  const canGenerate = subscription.hasPaidAccess;
+  const canGenerate = subscription.hasOptimizationAccess;
   const isPaidActive = subscription.isActive;
 
   const shellPlan: AppShellPlanSummary = useMemo(() => {
-    if (subscription.loading) return "loading";
-    if (!subscription.hasPaidAccess) return "none";
-    if (subscription.isTrialing) return "trial";
-    return "active";
-  }, [subscription.loading, subscription.hasPaidAccess, subscription.isTrialing]);
+    if (subscription.loading || !subscription.profileReady) return "loading";
+    if (subscription.hasOptimizationAccess) {
+      if (subscription.isWelcome && !subscription.hasPaidAccess) return "welcome";
+      if (subscription.isTrialing) return "trial";
+      return "active";
+    }
+    if (subscription.freePlanBlockedCode === "free_daily_limit") return "welcome";
+    return "none";
+  }, [
+    subscription.loading,
+    subscription.profileReady,
+    subscription.hasOptimizationAccess,
+    subscription.hasPaidAccess,
+    subscription.isWelcome,
+    subscription.isTrialing,
+    subscription.freePlanBlockedCode,
+  ]);
 
   const previewMeta = (id: ResumeTemplateId) => {
     const fromApi = result?.template_previews?.find((p) => p.id === id);
@@ -301,95 +335,93 @@ export default function BuilderPage() {
   return (
     <AppShell userEmail={userEmail} planSummary={shellPlan}>
       <div className="max-w-6xl mx-auto">
-        <div className="mb-8 sm:mb-10 flex flex-col gap-5 sm:gap-6">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-1">
+        <div className="mb-6 sm:mb-7 flex flex-col gap-3">
+          <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-0.5">
                 Resume builder
               </p>
-              <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">
+              <h2 className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
                 Optimize for a role
               </h2>
-              <p className="text-sm text-muted-foreground mt-1 max-w-md leading-relaxed">
-                Upload once, paste a job, get one tailored resume in three ATS-ready layouts.
+              <p className="text-xs text-muted-foreground mt-0.5 max-w-md leading-snug">
+                Upload once → paste a job → five ATS-ready layouts.
               </p>
             </div>
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="rounded-full h-10 px-4 text-xs font-medium border-border bg-card shadow-sm shadow-black/[0.03] hover:bg-muted/60 shrink-0 self-start sm:self-auto"
+            <Link
+              href="/dashboard#recent"
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors shrink-0 pt-0.5"
             >
-              <Link href="/dashboard#recent">
-                <LayoutDashboard className="size-3.5 mr-2 text-muted-foreground" strokeWidth={1.25} />
-                Recent runs
-              </Link>
-            </Button>
+              <LayoutDashboard className="size-3.5" strokeWidth={1.25} />
+              Recent
+            </Link>
           </div>
 
-          <div className="rounded-2xl border border-border bg-card shadow-sm shadow-black/[0.03] px-4 py-5 sm:px-8 sm:py-6">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-4 sm:mb-5 text-center">
-              Progress
-            </p>
-            <div className="max-w-lg mx-auto">
-              <div className="flex items-center w-full">
-                {stepLabels.map((s, i) => (
-                  <Fragment key={s.id}>
-                    <div className="flex flex-col items-center shrink-0">
-                      <div
-                        className={cn(
-                          "flex size-9 sm:size-10 items-center justify-center rounded-full text-[11px] sm:text-xs font-semibold border-2 transition-all duration-200",
-                          step > s.id &&
-                            "bg-primary border-primary text-primary-foreground shadow-sm shadow-primary/20",
-                          step === s.id &&
-                            "bg-primary border-primary text-primary-foreground ring-4 ring-primary/15 shadow-sm",
-                          step < s.id && "border-border bg-background text-muted-foreground"
-                        )}
-                      >
-                        {step > s.id ? (
-                          <Check className="size-4 sm:size-[15px]" strokeWidth={2.5} />
-                        ) : (
-                          <span className="tabular-nums">{s.id}</span>
-                        )}
-                      </div>
-                    </div>
-                    {i < stepLabels.length - 1 && (
-                      <div className="flex-1 flex items-center px-1.5 sm:px-3 min-h-[2.25rem] sm:min-h-10">
+          <div className="rounded-lg border border-border/70 bg-muted/15 px-3 py-2.5 sm:px-4">
+            <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-4">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground shrink-0 sm:pt-0.5">
+                Progress
+              </span>
+              <div className="flex-1 min-w-0 max-w-xl sm:mx-auto">
+                <div className="flex items-center w-full">
+                  {stepLabels.map((s, i) => (
+                    <Fragment key={s.id}>
+                      <div className="flex flex-col items-center shrink-0">
                         <div
                           className={cn(
-                            "h-0.5 w-full rounded-full transition-colors duration-300",
-                            step > s.id ? "bg-primary" : "bg-border"
+                            "flex size-7 sm:size-8 items-center justify-center rounded-full text-[10px] sm:text-[11px] font-semibold border transition-all duration-200",
+                            step > s.id &&
+                              "bg-primary border-primary text-primary-foreground shadow-sm shadow-primary/15",
+                            step === s.id &&
+                              "bg-primary border-primary text-primary-foreground ring-2 ring-primary/20 shadow-sm",
+                            step < s.id && "border-border bg-background text-muted-foreground"
                           )}
-                          aria-hidden
-                        />
+                        >
+                          {step > s.id ? (
+                            <Check className="size-3 sm:size-3.5" strokeWidth={2.5} />
+                          ) : (
+                            <span className="tabular-nums">{s.id}</span>
+                          )}
+                        </div>
                       </div>
-                    )}
-                  </Fragment>
-                ))}
-              </div>
-              <div className="flex justify-between w-full mt-3 sm:mt-3.5 gap-1">
-                {stepLabels.map((s) => (
-                  <div
-                    key={s.id}
-                    className={cn(
-                      "flex-1 text-center min-w-0 px-0.5",
-                      step === s.id && "text-foreground",
-                      step > s.id && "text-muted-foreground",
-                      step < s.id && "text-muted-foreground/55"
-                    )}
-                  >
-                    <span className="text-[10px] sm:text-[11px] font-medium leading-tight block">
-                      <span className="hidden sm:inline">{s.long}</span>
-                      <span className="sm:hidden">{s.short}</span>
-                    </span>
-                  </div>
-                ))}
+                      {i < stepLabels.length - 1 && (
+                        <div className="flex-1 flex items-center px-1 sm:px-2 min-h-7">
+                          <div
+                            className={cn(
+                              "h-px w-full rounded-full transition-colors duration-300",
+                              step > s.id ? "bg-primary" : "bg-border"
+                            )}
+                            aria-hidden
+                          />
+                        </div>
+                      )}
+                    </Fragment>
+                  ))}
+                </div>
+                <div className="flex justify-between w-full mt-2 gap-0.5">
+                  {stepLabels.map((s) => (
+                    <div
+                      key={s.id}
+                      className={cn(
+                        "flex-1 text-center min-w-0 px-0.5",
+                        step === s.id && "text-foreground",
+                        step > s.id && "text-muted-foreground",
+                        step < s.id && "text-muted-foreground/55"
+                      )}
+                    >
+                      <span className="text-[9px] sm:text-[10px] font-medium leading-tight block">
+                        <span className="hidden sm:inline">{s.long}</span>
+                        <span className="sm:hidden">{s.short}</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {step < 3 && <BuilderPlanStatus subscription={subscription} />}
+        {step < 3 && <BuilderPlanStatus subscription={subscription} compact />}
 
         <AnimatePresence mode="wait">
           {step === 1 && (
@@ -400,12 +432,12 @@ export default function BuilderPage() {
               exit={{ opacity: 0, x: -20 }}
               className="max-w-xl mx-auto"
             >
-              <div className="mb-10 text-center">
-                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground/70 mb-3">Step 1 of 3</p>
-                <h1 className="mb-3 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl md:text-4xl md:font-medium">
+              <div className="mb-8 text-center">
+                <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground/70 mb-2">Step 1 of 3</p>
+                <h1 className="mb-2 text-xl font-semibold tracking-tight text-foreground sm:text-2xl md:text-3xl">
                   Add your resume
                 </h1>
-                <p className="text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
+                <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
                   We parse it once, then match it to any job you paste next.
                 </p>
               </div>
@@ -501,13 +533,13 @@ export default function BuilderPage() {
                   <div className="max-w-2xl sm:max-w-none space-y-2">
                     <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-primary/90 mb-1 flex items-center justify-center sm:justify-start gap-2">
                       <Sparkles className="size-3.5" strokeWidth={1.25} />
-                      One resume · three ATS layouts
+                      One resume · five ATS layouts
                     </p>
                     <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
                       {result.job_title ? `Tailored for ${result.job_title}` : "Your optimized resume"}
                     </h1>
                     <p className="text-sm text-muted-foreground max-w-xl mx-auto sm:mx-0 leading-relaxed">
-                      Preview the same optimized content in three professional layouts. Export PDF or DOCX from whichever
+                      Preview the same optimized content in five professional layouts. Export PDF or DOCX from whichever
                       you prefer.
                     </p>
                   </div>
@@ -567,11 +599,11 @@ export default function BuilderPage() {
                     <p className="text-sm text-muted-foreground leading-relaxed">
                       <span className="text-foreground font-medium">Full preview</span> on a card opens a large view.{" "}
                       <span className="text-foreground font-medium">Preview &amp; download</span> above switches layouts
-                      and exports. All three use the same optimized content.
+                      and exports. All layouts use the same optimized content.
                     </p>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-                    {TEMPLATE_ORDER.map((tid, index) => {
+                    {ALL_TEMPLATE_IDS.map((tid, index) => {
                       const meta = previewMeta(tid);
                       return (
                         <TemplatePreviewCard

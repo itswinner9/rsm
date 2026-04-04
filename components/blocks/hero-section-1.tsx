@@ -5,8 +5,9 @@ import Link from 'next/link'
 import { ArrowRight, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AnimatedGroup } from '@/components/ui/animated-group'
-import { createClient } from '@/lib/supabase/client'
 import { SiteHeader } from '@/components/layout/site-header'
+import { useUserSubscription } from '@/hooks/use-user-subscription'
+import { cn } from '@/lib/utils'
 
 const transitionVariants = {
     item: {
@@ -29,19 +30,56 @@ const transitionVariants = {
 }
 
 export function HeroSection() {
-    const supabase = createClient()
-    const [isLoggedIn, setIsLoggedIn] = React.useState(false)
+    const subscription = useUserSubscription({ stripeSyncBeforeProfile: true })
+    const isLoggedIn = subscription.isLoggedIn
+    const ctaReady = subscription.authReady && (!isLoggedIn || subscription.profileReady)
+    const paid = isLoggedIn && subscription.hasPaidAccess
 
-    React.useEffect(() => {
-        supabase.auth.getSession().then(({ data }) => {
-            setIsLoggedIn(!!data.session)
-        })
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
-            setIsLoggedIn(!!session)
-        })
-        return () => subscription.unsubscribe()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+    const pillHref = !ctaReady
+        ? '/auth/signup'
+        : !isLoggedIn
+          ? '/auth/signup'
+          : paid
+            ? '/dashboard'
+            : '/builder'
+    const pillLabel = !ctaReady
+        ? 'resumify.cc · Try your first optimization free'
+        : !isLoggedIn
+          ? 'resumify.cc · Try your first optimization free'
+          : paid
+            ? 'Welcome back — open dashboard'
+            : 'Welcome back — resume builder'
+
+    const primaryHref = !ctaReady
+        ? '/auth/signup'
+        : !isLoggedIn
+          ? '/auth/signup'
+          : paid
+            ? '/dashboard'
+            : '/builder'
+    const primaryLabel = !ctaReady
+        ? 'Build My Resume Free'
+        : !isLoggedIn
+          ? 'Build My Resume Free'
+          : paid
+            ? 'Open dashboard'
+            : 'Open resume builder'
+
+    const secondaryLoggedInPaid = paid && ctaReady
+    const trustedHref = !ctaReady
+        ? '/auth/signup'
+        : !isLoggedIn
+          ? '/auth/signup'
+          : paid
+            ? '/dashboard'
+            : '/builder'
+    const trustedLabel = !ctaReady
+        ? 'Start Optimizing Your Resume'
+        : !isLoggedIn
+          ? 'Start Optimizing Your Resume'
+          : paid
+            ? 'Continue to dashboard'
+            : 'Continue to resume builder'
 
     return (
         <>
@@ -95,12 +133,15 @@ export function HeroSection() {
                             <div className="text-center sm:mx-auto lg:mr-auto lg:mt-0">
                                 <AnimatedGroup variants={transitionVariants}>
                                     <Link
-                                        href={isLoggedIn ? '/builder' : '/auth/signup'}
-                                        className="hover:bg-background bg-muted group mx-auto flex w-fit items-center gap-4 rounded-full border border-border p-1 pl-4 shadow-md shadow-black/5 transition-all duration-300">
+                                        href={pillHref}
+                                        className={cn(
+                                            'hover:bg-background bg-muted group mx-auto flex w-fit items-center gap-4 rounded-full border border-border p-1 pl-4 shadow-md shadow-black/5 transition-all duration-300',
+                                            !ctaReady && isLoggedIn && 'pointer-events-none opacity-60'
+                                        )}
+                                        aria-busy={!ctaReady && isLoggedIn}
+                                    >
                                         <span className="text-foreground text-sm">
-                                            {isLoggedIn
-                                                ? 'Welcome back — open builder'
-                                                : 'resumify.cc · Try your first optimization free'}
+                                            {!ctaReady && isLoggedIn ? 'Loading your plan…' : pillLabel}
                                         </span>
                                         <span className="block h-4 w-0.5 border-l border-border bg-background" />
 
@@ -140,25 +181,43 @@ export function HeroSection() {
                                     <div
                                         key={1}
                                         className="bg-foreground/10 rounded-[14px] border p-0.5">
+                                        {!ctaReady && isLoggedIn ? (
+                                            <Button size="lg" disabled className="rounded-xl px-5 text-base">
+                                                <span className="text-nowrap">Loading…</span>
+                                            </Button>
+                                        ) : (
+                                            <Button asChild size="lg" className="rounded-xl px-5 text-base">
+                                                <Link href={primaryHref}>
+                                                    <span className="text-nowrap">{primaryLabel}</span>
+                                                </Link>
+                                            </Button>
+                                        )}
+                                    </div>
+                                    {secondaryLoggedInPaid ? (
                                         <Button
+                                            key={2}
                                             asChild
                                             size="lg"
-                                            className="rounded-xl px-5 text-base">
-                                            <Link href={isLoggedIn ? '/builder' : '/auth/signup'}>
-                                                <span className="text-nowrap">{isLoggedIn ? 'Open builder' : 'Build My Resume Free'}</span>
+                                            variant="ghost"
+                                            className="h-10.5 rounded-xl px-5"
+                                        >
+                                            <Link href="/builder">
+                                                <span className="text-nowrap">Resume builder</span>
                                             </Link>
                                         </Button>
-                                    </div>
-                                    <Button
-                                        key={2}
-                                        asChild
-                                        size="lg"
-                                        variant="ghost"
-                                        className="h-10.5 rounded-xl px-5">
-                                        <Link href="/pricing">
-                                            <span className="text-nowrap">See plans</span>
-                                        </Link>
-                                    </Button>
+                                    ) : (
+                                        <Button
+                                            key={2}
+                                            asChild
+                                            size="lg"
+                                            variant="ghost"
+                                            className="h-10.5 rounded-xl px-5"
+                                        >
+                                            <Link href="/pricing">
+                                                <span className="text-nowrap">See plans</span>
+                                            </Link>
+                                        </Button>
+                                    )}
                                 </AnimatedGroup>
                             </div>
                         </div>
@@ -194,9 +253,15 @@ export function HeroSection() {
                         </p>
                         <div className="absolute inset-0 z-10 flex scale-95 items-center justify-center opacity-0 duration-500 group-hover:scale-100 group-hover:opacity-100">
                             <Link
-                                href={isLoggedIn ? '/builder' : '/auth/signup'}
-                                className="block text-sm duration-150 hover:opacity-75">
-                                <span>{isLoggedIn ? 'Continue to builder' : 'Start Optimizing Your Resume'}</span>
+                                href={trustedHref}
+                                className={cn(
+                                    'block text-sm duration-150 hover:opacity-75',
+                                    !ctaReady && isLoggedIn && 'pointer-events-none opacity-50'
+                                )}
+                            >
+                                <span>
+                                    {!ctaReady && isLoggedIn ? 'Loading…' : trustedLabel}
+                                </span>
                                 <ChevronRight className="ml-1 inline-block size-3" />
                             </Link>
                         </div>

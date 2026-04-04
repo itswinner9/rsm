@@ -46,9 +46,13 @@ export async function buildResumeDocxBuffer(
   templateId: ResumeTemplateId
 ): Promise<Buffer> {
   const style =
-    templateId === "executive" ? "exec" : templateId === "compact" ? "compact" : "classic";
-  const executive = templateId === "executive";
-  const compact = templateId === "compact";
+    templateId === "executive" || templateId === "modern"
+      ? "exec"
+      : templateId === "compact" || templateId === "minimal"
+        ? "compact"
+        : "classic";
+  const executive = templateId === "executive" || templateId === "modern";
+  const compact = templateId === "compact" || templateId === "minimal";
   const centerHeader = !executive;
 
   const children: Paragraph[] = [];

@@ -1,7 +1,22 @@
 import { z } from "zod";
 
-export const resumeTemplateIdSchema = z.enum(["classic", "executive", "compact"]);
+export const resumeTemplateIdSchema = z.enum([
+  "classic",
+  "executive",
+  "compact",
+  "modern",
+  "minimal",
+]);
 export type ResumeTemplateId = z.infer<typeof resumeTemplateIdSchema>;
+
+/** All layouts shown in builder / exports (single source of truth). */
+export const ALL_TEMPLATE_IDS = [
+  "classic",
+  "executive",
+  "compact",
+  "modern",
+  "minimal",
+] as const satisfies readonly ResumeTemplateId[];
 
 const strArr = z
   .array(z.string())
@@ -86,6 +101,14 @@ export const TEMPLATE_META: Record<
     label: "Compact Skills Focused",
     description: "Skills and summary up front—great for career changes and keyword-dense roles.",
   },
+  modern: {
+    label: "Contemporary Sidebar Accent",
+    description: "Bold header with accent rail—stands out while staying ATS-friendly.",
+  },
+  minimal: {
+    label: "Minimal Open White",
+    description: "Generous spacing and light typography—readable and calm for any level.",
+  },
 };
 
 /** Short name for compact UI (e.g. dashboard rows). */
@@ -93,10 +116,14 @@ export const TEMPLATE_SHORT_LABEL: Record<ResumeTemplateId, string> = {
   classic: "Classic",
   executive: "Executive",
   compact: "Compact",
+  modern: "Modern",
+  minimal: "Minimal",
 };
 
+const TEMPLATE_ID_SET = new Set<string>(ALL_TEMPLATE_IDS);
+
 export function parseResumeTemplateId(id: unknown): ResumeTemplateId | null {
-  if (id === "classic" || id === "executive" || id === "compact") return id;
+  if (typeof id === "string" && TEMPLATE_ID_SET.has(id)) return id as ResumeTemplateId;
   return null;
 }
 

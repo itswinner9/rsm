@@ -26,7 +26,7 @@ const features = [
         icon: Zap,
         title: 'Three ATS layouts, same story',
         description:
-            'Classic, executive, and compact skins on one master resume. Pick the look; PDF and DOCX stay interview-ready.',
+            'Five layout skins on one master resume. Pick the look; PDF and DOCX stay interview-ready.',
     },
     {
         icon: Download,

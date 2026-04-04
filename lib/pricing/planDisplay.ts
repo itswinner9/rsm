@@ -39,7 +39,7 @@ export const pricingHero = {
   eyebrow: "Plans · resumify.cc",
   title: "Invest in interviews—not ignored applications",
   subtitle:
-    "ATS systems screen you before a human ever does. Resumify aligns your real experience to each job, shows your match score, and exports clean PDFs and DOCX. Start with a 3-day trial (card required at checkout), then stay on monthly or yearly billing in CAD.",
+    "ATS systems screen you before a human ever does. Resumify aligns your real experience to each job, shows your match score, and exports clean PDFs and DOCX. Subscribers get resume storage—past runs and downloads on your dashboard. Yearly billing saves about $20 vs paying monthly for the same features. Start with a 3-day trial (card at checkout), then monthly or yearly in CAD.",
 };
 
 /** Shown while session or profile is loading so we don’t flash guest-only copy to signed-in users. */
@@ -49,7 +49,7 @@ export const homePricingHero = {
   eyebrow: "Plans · resumify.cc",
   title: "A few dollars a month vs. months of silence",
   subtitle:
-    "Subscribe with a card to start your 3-day trial (card required at checkout): one optimization per UTC day while trialing, then unlimited while your subscription is active. Choose monthly or yearly billing—all in Canadian dollars via Stripe.",
+    "Subscribe with a card to start your 3-day trial (card required at checkout): one optimization per UTC day while trialing, then unlimited while your subscription is active. Yearly saves about $20 vs paying monthly for the same features—including resume storage of your runs on the dashboard. All prices in CAD via Stripe.",
 };
 
 export const homePricingHeroProfileLoading = pricingHeroProfileLoading;
@@ -87,6 +87,7 @@ export const tierDefinitions: Record<PricingTierDefinition["id"], PricingTierDef
     featuresDetailed: [
       "Everything after trial, including:",
       "Unlimited optimizations & exports while subscribed",
+      "Resume storage: past runs & downloads on your dashboard",
       "AI bullet, summary & headline tools",
       "ATS keyword tuning & match scoring",
       "Full template library · PDF & DOCX",
@@ -94,7 +95,7 @@ export const tierDefinitions: Record<PricingTierDefinition["id"], PricingTierDef
     ],
     featuresHome: [
       "3-day trial with card, then monthly billing",
-      "Unlimited runs after trial while active",
+      "Unlimited runs after trial · resume history on your dashboard",
       "Cancel anytime from billing portal",
     ],
     ctaLabel: "Start monthly",
@@ -106,20 +107,21 @@ export const tierDefinitions: Record<PricingTierDefinition["id"], PricingTierDef
   yearly: {
     id: "yearly",
     displayName: "Yearly",
-    tagline: "Best value if you’re hiring-season ready",
+    tagline: "Best value — save ~$20/yr vs monthly (same features)",
     priceAmount: "$99.99",
     priceSuffix: "/ year CAD",
     featuresDetailed: [
-      "Same product as Monthly — better annual price",
+      "Same product as Monthly — about $8.33/mo effective vs $9.99/mo",
       "3-day trial, then yearly billing in CAD",
       "Unlimited optimizations while subscribed",
+      "Resume storage: past runs & exports on your dashboard",
       "AI rewrites, ATS tools, templates, exports",
       "Receipts & payment method in Stripe portal",
     ],
     featuresHome: [
-      "Lower effective monthly vs paying month-by-month",
+      "~$20 less per year than 12× monthly — same unlimited access",
       "3-day trial then annual billing",
-      "Unlimited optimizations after trial",
+      "Resume history & downloads on your dashboard",
     ],
     ctaLabel: "Start yearly",
     checkoutPlan: "year",
@@ -139,14 +141,36 @@ export const pricingTierOrder: PricingTierDefinition["id"][] = ["monthly", "year
 /** Builder plan strip — loading (screen reader). */
 export const builderPlanLoadingHint = "Loading your plan";
 
-/** Builder — no paid access yet. */
-export const builderPlanNoAccessLine = "No subscription on this account yet.";
+/** Builder — no paid access yet (non-compact). */
+export const builderPlanNoAccessLine = "No plan yet.";
 
 export const builderPlanNoAccessCta =
-  "Start a 3-day trial with your card on the plans page, then $9.99/mo or $99.99/yr CAD.";
+  "Start a 3-day trial on Plans (card on file), then $9.99/mo or $99.99/yr CAD.";
+
+/** Builder compact strip — one short line + CTA. */
+export const builderPlanNoAccessCompact = "No plan yet — start a 3-day trial on Plans.";
+
+/** Free welcome window: already ran today (UTC). */
+export const builderPlanWelcomeDailyWaitCompact =
+  "Welcome: you used today’s free credit (UTC). Come back tomorrow or upgrade for unlimited runs.";
+
+export const builderPlanWelcomeDailyWaitLine =
+  "You’ve used your free optimization for today (UTC). Come back tomorrow, or upgrade for unlimited runs.";
+
+/** Free welcome: 3 runs used. */
+export const builderPlanWelcomeCapCompact =
+  "You’ve used all 3 free runs. Upgrade for unlimited optimizations and resume storage.";
+
+/** Free welcome window ended (72h). */
+export const builderPlanWelcomeEndedCompact =
+  "Your free window has ended. Subscribe on Plans for unlimited runs and stored resumes.";
 
 /** Builder — trialing. */
 export const builderPlanTrialLine = "One optimization per UTC calendar day while trialing.";
+
+/** Builder — free plan (3-day window from first free run, no card). */
+export const builderPlanWelcomeLine =
+  "Welcome: one free optimization per UTC day, up to 3 uses within 3 days from your first free run. Upgrade anytime for unlimited runs.";
 
 /** Hero line when logged in but not yet subscribed (pricing + home #pricing). */
 export const pricingHeroLoggedInNoSub =
@@ -164,7 +188,7 @@ export const manageBillingLabel = "Manage billing";
 export const manageBillingHref = "/profile";
 export const dashboardHref = "/dashboard";
 export const builderHref = "/builder";
-export const starterCtaLoggedInLabel = "Open builder";
+export const starterCtaLoggedInLabel = "Open resume builder";
 export const starterCtaSubscriberLabel = "Manage plan";
 
 export const faqSectionTitle = "Common questions";
@@ -176,7 +200,7 @@ export const pricingFaqs: { q: string; a: string }[] = [
   },
   {
     q: "Do I get three different resumes?",
-    a: "No. You get one ATS-focused master resume tailored to the job description you provide. We show it in three layouts (same facts and wording, different visual structure) so you can pick the look you like and export PDF or DOCX from any layout.",
+    a: "No. You get one ATS-focused master resume tailored to the job description you provide. We show it in five layouts (same facts and wording, different visual structure) so you can pick the look you like and export PDF or DOCX from any layout.",
   },
   {
     q: "Will you invent jobs, skills, or credentials on my resume?",

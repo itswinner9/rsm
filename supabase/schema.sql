@@ -54,6 +54,12 @@ CREATE POLICY "resume_generations_update_own" ON resume_generations FOR UPDATE T
 CREATE POLICY "resume_generations_delete_own" ON resume_generations FOR DELETE TO authenticated USING ((SELECT auth.uid()) = user_id);
 GRANT SELECT, INSERT, UPDATE, DELETE ON resume_generations TO authenticated;
 
+-- Welcome tier daily usage (see migrations/20260406120000_welcome_daily_optimizations.sql)
+-- welcome_daily_optimizations (user_id, usage_date) — legacy; free plan now uses user_profiles columns below.
+
+-- Free plan (see migrations/20260407130000_user_profiles_free_plan.sql): plan_type, free_trial_started_at,
+-- free_trial_ends_at, last_free_use_date, total_free_uses — server-updated in optimize-resume only.
+
 -- Polar webhooks use SUPABASE_SERVICE_ROLE_KEY in app code; service role bypasses RLS.
 -- Do NOT add FOR ALL USING (true) — that would let authenticated users match a policy and read every profile.
 

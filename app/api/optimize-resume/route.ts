@@ -7,8 +7,10 @@ import {
   aiOptimizeResponseSchema,
   resumeTemplateIdSchema,
   TEMPLATE_META,
+  ALL_TEMPLATE_IDS,
   type ResumeTemplateId,
 } from "@/lib/resume/types";
+import { evaluateFreeOptimizationGate, utcTodayString, type FreePlanRow } from "@/lib/subscription/freePlan";
 import { sanitizeOptimizedResumeData } from "@/lib/resume/sanitizeResumeText";
 import { normalizeAiOptimizePayload } from "@/lib/resume/normalizeAiOptimizePayload";
 import { jdKeywordMatchScore, flattenOptimizedResumeText } from "@/lib/resume/jdKeywordMatchScore";
@@ -82,7 +84,7 @@ Use this exact shape (do not include ats_score or ai_score — the server comput
   "suggestions": ["2-4 short next steps for the candidate"],
   "what_to_add": ["3-6 concrete additions ONLY if they could be truthful — e.g. a missing cert, tool, project, or metric they might have"],
   "improvements": ["3-5 bullets on what you changed for ATS and clarity"],
-  "suggested_template": "classic" | "executive" | "compact",
+  "suggested_template": "classic" | "executive" | "compact" | "modern" | "minimal",
   "optimized_resume_data": {
     "full_name": "string",
     "headline": "target title line aligned to JD",
@@ -112,6 +114,8 @@ Use this exact shape (do not include ats_score or ai_score — the server comput
 suggested_template rules:
 - "compact" — entry-level, career change, sparse work history, or student/new grad
 - "executive" — several years of experience, leadership/professional roles
+- "modern" — tech-forward or design-conscious roles; strong visual hierarchy without tables
+- "minimal" — lots of whitespace, very clean; early-career or when content is concise
 - "classic" — default for most applicants
 `.trim();
 
@@ -135,22 +139,23 @@ export async function POST(request: NextRequest) {
 
     const { data: profile } = await supabase
       .from("user_profiles")
-      .select("subscription_status, subscription_trial_end")
+      .select(
+        "subscription_status, subscription_trial_end, free_trial_started_at, free_trial_ends_at, last_free_use_date, total_free_uses"
+      )
       .eq("user_id", user.id)
       .single();
 
     const subStatus = profile?.subscription_status ?? "inactive";
-    if (subStatus !== "active" && subStatus !== "trialing") {
-      return NextResponse.json(
-        {
-          error: "subscription_required",
-          message: "Start your 3-day trial (card required) or subscribe to optimize resumes.",
-        },
-        { status: 403 }
-      );
-    }
+    const freeRow: FreePlanRow = {
+      free_trial_started_at: profile?.free_trial_started_at ?? null,
+      free_trial_ends_at: profile?.free_trial_ends_at ?? null,
+      last_free_use_date: profile?.last_free_use_date ?? null,
+      total_free_uses: profile?.total_free_uses ?? 0,
+    };
 
-    if (subStatus === "trialing") {
+    if (subStatus === "active") {
+      // unlimited — no daily checks
+    } else if (subStatus === "trialing") {
       const trialEnd = profile?.subscription_trial_end ? new Date(profile.subscription_trial_end) : null;
       if (trialEnd && Date.now() > trialEnd.getTime()) {
         return NextResponse.json(
@@ -159,7 +164,7 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const todayUtc = new Date().toISOString().slice(0, 10);
+      const todayUtc = utcTodayString();
       const { data: usedToday } = await supabase
         .from("trial_daily_optimizations")
         .select("id")
@@ -173,6 +178,14 @@ export async function POST(request: NextRequest) {
             error: "trial_daily_limit",
             message: "Trial includes one optimization per day (UTC). Come back tomorrow or upgrade for unlimited runs.",
           },
+          { status: 403 }
+        );
+      }
+    } else {
+      const gate = evaluateFreeOptimizationGate(freeRow);
+      if (!gate.ok) {
+        return NextResponse.json(
+          { error: gate.code, message: gate.message },
           { status: 403 }
         );
       }
@@ -205,7 +218,7 @@ ${jobDescription}
 Your task:
 1. Infer structured data from the resume (do not add employers/roles/dates that are not implied by the source).
 2. Analyze the job description: title, keywords, skills, responsibilities.
-3. Produce ONE best ATS-optimized resume as structured JSON only — the same facts will be shown in three visual templates in the app; do not produce three different wordings.
+3. Produce ONE best ATS-optimized resume as structured JSON only — the same facts will be shown in five visual templates in the app; do not produce five different wordings.
 4. Tailor summary, headline, skills ordering, and bullet phrasing to the JD using keywords naturally.
 5. Set suggested_template per the rules below.
 
@@ -360,10 +373,39 @@ ${JSON_INSTRUCTION}`;
       }
     }
 
+    if (subStatus !== "active" && subStatus !== "trialing" && admin) {
+      const today = utcTodayString();
+      const now = new Date();
+      if (!freeRow.free_trial_started_at) {
+        const ends = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+        const { error: freeErr } = await admin
+          .from("user_profiles")
+          .update({
+            free_trial_started_at: now.toISOString(),
+            free_trial_ends_at: ends.toISOString(),
+            last_free_use_date: today,
+            total_free_uses: 1,
+            updated_at: now.toISOString(),
+          })
+          .eq("user_id", user.id);
+        if (freeErr) console.error("free plan init:", freeErr.message);
+      } else {
+        const { error: freeErr } = await admin
+          .from("user_profiles")
+          .update({
+            last_free_use_date: today,
+            total_free_uses: (freeRow.total_free_uses ?? 0) + 1,
+            updated_at: now.toISOString(),
+          })
+          .eq("user_id", user.id);
+        if (freeErr) console.error("free plan increment:", freeErr.message);
+      }
+    }
+
     revalidatePath("/dashboard");
     revalidatePath("/profile");
 
-    const template_previews = (["classic", "executive", "compact"] as ResumeTemplateId[]).map((id) => ({
+    const template_previews = ALL_TEMPLATE_IDS.map((id) => ({
       id,
       name: TEMPLATE_META[id].label,
       description: TEMPLATE_META[id].description,

@@ -26,6 +26,7 @@ async function applySubscriptionToProfile(
       stripe_customer_id: stripeCustomerId,
       stripe_subscription_id: sub.id,
       subscription_status: status,
+      plan_type: status === "trialing" || status === "active" ? "pro" : "free",
       subscription_trial_end: trialEnd,
       subscription_current_period_end: periodEnd,
       updated_at: new Date().toISOString(),
@@ -119,6 +120,7 @@ export async function POST(request: Request) {
           .from("user_profiles")
           .update({
             subscription_status: "canceled",
+            plan_type: "free",
             stripe_subscription_id: null,
             subscription_trial_end: null,
             subscription_current_period_end: null,

@@ -20,7 +20,7 @@ import Link from "next/link";
 import { TemplatePreviewCard } from "@/components/builder/TemplatePreviewCard";
 import { ResumePreviewDialog } from "@/components/builder/ResumePreviewDialog";
 import type { OptimizedResumeData, ResumeTemplateId } from "@/lib/resume/types";
-import { optimizedResumeDataSchema, TEMPLATE_META } from "@/lib/resume/types";
+import { ALL_TEMPLATE_IDS, optimizedResumeDataSchema, parseResumeTemplateId, TEMPLATE_META } from "@/lib/resume/types";
 import { stripHtmlFromText } from "@/lib/resume/sanitizeResumeText";
 
 interface GenerationRow {
@@ -35,8 +35,6 @@ interface GenerationRow {
   job_description: string;
   created_at: string;
 }
-
-const TEMPLATE_ORDER: ResumeTemplateId[] = ["classic", "executive", "compact"];
 
 function ScoreRing({
   score,
@@ -104,9 +102,7 @@ export function GenerationDetail({ gen }: { gen: GenerationRow }) {
   const { toast } = useToast();
   const [showJD, setShowJD] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<ResumeTemplateId>(() => {
-    const s = gen.selected_template;
-    if (s === "executive" || s === "compact" || s === "classic") return s;
-    return "classic";
+    return parseResumeTemplateId(gen.selected_template) ?? "classic";
   });
   const [downloading, setDownloading] = useState<{ templateId: ResumeTemplateId; kind: "pdf" | "docx" } | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -131,8 +127,7 @@ export function GenerationDetail({ gen }: { gen: GenerationRow }) {
     const g = gen.generated_resumes;
     if (!g || typeof g !== "object" || Array.isArray(g)) return undefined;
     const st = (g as { suggested_template?: string }).suggested_template;
-    if (st === "classic" || st === "executive" || st === "compact") return st;
-    return undefined;
+    return parseResumeTemplateId(st) ?? undefined;
   })();
 
   const openResumePreview = (templateId: ResumeTemplateId) => {
@@ -235,7 +230,7 @@ export function GenerationDetail({ gen }: { gen: GenerationRow }) {
               >
                 <Link href="/builder">
                   <Sparkles className="size-4 mr-2" strokeWidth={1.25} />
-                  Builder
+                  Resume builder
                   <ChevronRight className="size-4 ml-1" strokeWidth={1.25} />
                 </Link>
               </Button>
@@ -312,7 +307,7 @@ export function GenerationDetail({ gen }: { gen: GenerationRow }) {
             downloading={downloading}
           />
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-            {TEMPLATE_ORDER.map((tid, index) => (
+            {ALL_TEMPLATE_IDS.map((tid, index) => (
               <TemplatePreviewCard
                 key={tid}
                 templateId={tid}
@@ -363,7 +358,7 @@ export function GenerationDetail({ gen }: { gen: GenerationRow }) {
             This run may predate the current format. Start a new optimization from the builder.
           </p>
           <Button asChild variant="outline" className="mt-6 rounded-full">
-            <Link href="/builder">Open builder</Link>
+            <Link href="/builder">Open resume builder</Link>
           </Button>
         </div>
       )}

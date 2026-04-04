@@ -24,7 +24,7 @@ export const OPTIMIZE_LOADING_STEPS: OptimizeLoadingStepDef[] = [
   { title: "Studying the job", hint: "Role requirements and keywords", Icon: ScanSearch },
   { title: "Structuring your profile", hint: "Clean sections for ATS parsers", Icon: Boxes },
   { title: "Tailoring the copy", hint: "One optimized version for all layouts", Icon: PenLine },
-  { title: "Preparing previews", hint: "Classic, executive, and compact", Icon: LayoutTemplate },
+  { title: "Preparing previews", hint: "Five ATS layouts (classic to minimal)", Icon: LayoutTemplate },
 ];
 
 export function OptimizeLoadingPanel({ activeIndex }: { activeIndex: number }) {

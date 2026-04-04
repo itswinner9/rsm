@@ -13,10 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Download, FileText, Loader2, Sparkles } from "lucide-react";
 import { ResumeTemplateView } from "@/components/resume-templates/ResumeTemplateView";
 import type { OptimizedResumeData, ResumeTemplateId } from "@/lib/resume/types";
-import { TEMPLATE_META } from "@/lib/resume/types";
+import { ALL_TEMPLATE_IDS, TEMPLATE_META } from "@/lib/resume/types";
 import { cn } from "@/lib/utils";
-
-const ORDER: ResumeTemplateId[] = ["classic", "executive", "compact"];
 
 interface ResumePreviewDialogProps {
   open: boolean;
@@ -65,14 +63,14 @@ export function ResumePreviewDialog({
             Resume preview
           </DialogTitle>
           <DialogDescription className="text-xs sm:text-sm leading-relaxed">
-            Same content in three ATS layouts. Switch tabs to compare, then download the one you want.
+            Same content in five ATS layouts. Switch tabs to compare, then download the one you want.
           </DialogDescription>
         </DialogHeader>
 
         <Tabs value={tab} onValueChange={(v) => setTab(v as ResumeTemplateId)} className="flex flex-col flex-1 min-h-0">
           <div className="px-5 pt-3 shrink-0">
             <TabsList className="w-full h-auto flex-wrap justify-start gap-1 rounded-xl bg-muted/50 p-1.5">
-              {ORDER.map((id) => (
+              {ALL_TEMPLATE_IDS.map((id) => (
                 <TabsTrigger
                   key={id}
                   value={id}
@@ -89,7 +87,7 @@ export function ResumePreviewDialog({
             </TabsList>
           </div>
 
-          {ORDER.map((id) => (
+          {ALL_TEMPLATE_IDS.map((id) => (
             <TabsContent
               key={id}
               value={id}

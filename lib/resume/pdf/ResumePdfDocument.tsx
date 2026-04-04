@@ -324,9 +324,9 @@ export function ResumePdfDocument({
   templateId: ResumeTemplateId;
 }) {
   const PageComponent =
-    templateId === "executive"
+    templateId === "executive" || templateId === "modern"
       ? ExecutivePage
-      : templateId === "compact"
+      : templateId === "compact" || templateId === "minimal"
         ? CompactPage
         : ClassicPage;
 

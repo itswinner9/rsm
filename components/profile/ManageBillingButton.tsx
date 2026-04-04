@@ -4,8 +4,9 @@ import { useState } from "react";
 import { Loader2, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
-export function ManageBillingButton() {
+export function ManageBillingButton({ className }: { className?: string }) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -34,7 +35,10 @@ export function ManageBillingButton() {
     <Button
       type="button"
       variant="outline"
-      className="w-full rounded-full min-h-10 border-border bg-transparent hover:bg-muted"
+      className={cn(
+        "w-full rounded-full min-h-10 border-border bg-transparent hover:bg-muted",
+        className
+      )}
       disabled={loading}
       onClick={openPortal}
     >

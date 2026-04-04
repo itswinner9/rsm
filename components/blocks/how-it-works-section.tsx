@@ -33,7 +33,7 @@ const steps = [
         icon: Download,
         title: 'Choose a layout & export',
         description:
-            'Compare classic, executive, and compact. Export PDF or DOCX from whichever look you like—the content stays the same, optimized for scanners and recruiters.',
+            'Compare five layouts (classic through minimal). Export PDF or DOCX from whichever look you like—the content stays the same, optimized for scanners and recruiters.',
     },
 ];
 

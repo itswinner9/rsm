@@ -209,15 +209,22 @@ export function normalizeAiOptimizePayload(input: unknown): unknown {
     if (key in o) o[key] = normalizeStrArray(o[key]);
   }
 
+  const validTemplates = [
+    "classic",
+    "executive",
+    "compact",
+    "modern",
+    "minimal",
+  ] as const;
+
   let template = o.suggested_template;
   if (Array.isArray(template) && template.length) template = template[0];
   if (typeof template === "number") {
-    const map = ["classic", "executive", "compact"] as const;
-    template = map[template] ?? "classic";
+    template = validTemplates[template] ?? "classic";
   }
   if (typeof template === "string") {
     const t = template.toLowerCase().trim();
-    if (t === "classic" || t === "executive" || t === "compact") {
+    if ((validTemplates as readonly string[]).includes(t)) {
       o.suggested_template = t;
     } else {
       o.suggested_template = "classic";
