@@ -1,5 +1,8 @@
 import Stripe from "stripe";
 
+/** Required for Checkout [Managed Payments](https://docs.stripe.com/payments/checkout/managed-payments). */
+export const STRIPE_API_VERSION = "2026-02-25.preview" as Stripe.LatestApiVersion;
+
 let _stripe: Stripe | null = null;
 
 export function getStripe(): Stripe {
@@ -8,7 +11,10 @@ export function getStripe(): Stripe {
     throw new Error("STRIPE_SECRET_KEY is not set");
   }
   if (!_stripe) {
-    _stripe = new Stripe(key, { typescript: true });
+    _stripe = new Stripe(key, {
+      typescript: true,
+      apiVersion: STRIPE_API_VERSION,
+    });
   }
   return _stripe;
 }

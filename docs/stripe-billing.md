@@ -8,7 +8,7 @@ This app follows Stripe’s standard **subscriptions + Checkout** model: [Subscr
 |-------|---------|
 | **Stripe Dashboard** | Products, Prices (`price_…`), Customers, Subscriptions |
 | **Next.js API** | `STRIPE_SECRET_KEY` — create Checkout sessions, Billing Portal, sync subscriptions |
-| **Hosted Checkout** | `/api/stripe/checkout` — subscription mode, 3-day trial, CAD |
+| **Hosted Checkout** | `/api/stripe/checkout` — subscription mode, 3-day trial, CAD, [Managed Payments](https://docs.stripe.com/payments/checkout/managed-payments) (`managed_payments.enabled`), Stripe API `2026-02-25.preview` |
 | **Webhooks** | `POST /api/stripe/webhook` — `STRIPE_WEBHOOK_SECRET` verifies events; service role updates `user_profiles` |
 | **Supabase** | Auth + Postgres `user_profiles` (Stripe IDs and subscription fields only) |
 

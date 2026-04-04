@@ -72,14 +72,20 @@ export async function POST(request: Request) {
 
     const origin = getAppOrigin();
 
-    const base: Stripe.Checkout.SessionCreateParams = {
+    // Managed Payments: do not set payment_method_collection / payment_method_types / automatic_tax / etc.
+    // SDK types may lag preview fields — see Stripe API 2026-02-25.preview.
+    const base: Stripe.Checkout.SessionCreateParams & {
+      managed_payments: { enabled: boolean };
+    } = {
       mode: "subscription",
-      payment_method_collection: "always",
       client_reference_id: user.id,
       line_items: lineItems,
       success_url: `${origin}/dashboard?success=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/pricing?checkout=canceled`,
       allow_promotion_codes: true,
+      managed_payments: {
+        enabled: true,
+      },
       subscription_data: {
         trial_period_days: TRIAL_DAYS,
         metadata: { supabase_user_id: user.id },
