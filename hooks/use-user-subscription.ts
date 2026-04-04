@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { hasPaidPlanAccess } from "@/lib/subscription/access";
 
@@ -19,6 +19,19 @@ export type UserSubscriptionState = {
   trialEndLabel: string | null;
 };
 
+export type UseUserSubscriptionOptions = {
+  /**
+   * POST /api/stripe/sync before GET /api/user/profile so DB matches Stripe after checkout.
+   * Use on app surfaces (e.g. builder); keep false on marketing pricing.
+   */
+  stripeSyncBeforeProfile?: boolean;
+};
+
+export type UserSubscriptionResult = UserSubscriptionState & {
+  /** Re-run Stripe sync (if enabled) and profile fetch; e.g. after first optimization. */
+  refetch: () => Promise<void>;
+};
+
 const loggedOut: Omit<UserSubscriptionState, "authReady" | "profileReady" | "loading"> = {
   isLoggedIn: false,
   hasPaidAccess: false,
@@ -35,22 +48,48 @@ const initial: UserSubscriptionState = {
   ...loggedOut,
 };
 
+function buildStateFromProfile(data: {
+  subscription_status?: string | null;
+  subscription_trial_end?: string | null;
+}): Omit<UserSubscriptionState, "authReady" | "profileReady" | "loading" | "isLoggedIn"> {
+  const subscription_status =
+    typeof data.subscription_status === "string" ? data.subscription_status : null;
+  const trialEnd =
+    typeof data.subscription_trial_end === "string" ? data.subscription_trial_end : null;
+  const trialEndLabel =
+    subscription_status === "trialing" && trialEnd
+      ? new Date(trialEnd).toLocaleDateString("en-CA", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        })
+      : null;
+
+  return {
+    hasPaidAccess: hasPaidPlanAccess(subscription_status),
+    isTrialing: subscription_status === "trialing",
+    isActive: subscription_status === "active",
+    subscriptionStatus: subscription_status,
+    trialEndLabel,
+  };
+}
+
 /**
  * Loads auth from the Supabase client first, then subscription snapshot from GET /api/user/profile.
  * Avoids treating logged-in users as guests while the profile request is in flight.
  */
-export function useUserSubscription(): UserSubscriptionState {
+export function useUserSubscription(options?: UseUserSubscriptionOptions): UserSubscriptionResult {
+  const stripeSyncFirst = options?.stripeSyncBeforeProfile === true;
   const [state, setState] = useState<UserSubscriptionState>(initial);
+  const cancelledRef = useRef(false);
 
-  useEffect(() => {
-    let cancelled = false;
-    const supabase = createClient();
-
-    (async () => {
+  const loadProfile = useCallback(
+    async (opts: { sessionKnown: boolean }) => {
+      const supabase = createClient();
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      if (cancelled) return;
+      if (cancelledRef.current) return;
 
       if (!session?.user) {
         setState({
@@ -62,17 +101,26 @@ export function useUserSubscription(): UserSubscriptionState {
         return;
       }
 
-      setState((s) => ({
-        ...s,
-        authReady: true,
-        profileReady: false,
-        loading: true,
-        isLoggedIn: true,
-      }));
+      if (!opts.sessionKnown) {
+        setState((s) => ({
+          ...s,
+          authReady: true,
+          profileReady: false,
+          loading: true,
+          isLoggedIn: true,
+        }));
+      } else {
+        setState((s) => ({ ...s, profileReady: false, loading: true }));
+      }
 
       try {
+        if (stripeSyncFirst) {
+          await fetch("/api/stripe/sync", { method: "POST", credentials: "same-origin" });
+          if (cancelledRef.current) return;
+        }
+
         const res = await fetch("/api/user/profile", { credentials: "same-origin" });
-        if (cancelled) return;
+        if (cancelledRef.current) return;
 
         if (res.status === 401) {
           setState({
@@ -98,30 +146,17 @@ export function useUserSubscription(): UserSubscriptionState {
             typeof data.subscription_trial_end === "string" ? data.subscription_trial_end : null;
         }
 
-        const status = subscription_status;
-        const trialEnd = subscription_trial_end;
-        const trialEndLabel =
-          status === "trialing" && trialEnd
-            ? new Date(trialEnd).toLocaleDateString("en-CA", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-              })
-            : null;
+        const fields = buildStateFromProfile({ subscription_status, subscription_trial_end });
 
         setState({
           authReady: true,
           profileReady: true,
           loading: false,
           isLoggedIn: true,
-          hasPaidAccess: hasPaidPlanAccess(status),
-          isTrialing: status === "trialing",
-          isActive: status === "active",
-          subscriptionStatus: status,
-          trialEndLabel,
+          ...fields,
         });
       } catch {
-        if (!cancelled) {
+        if (!cancelledRef.current) {
           setState({
             authReady: true,
             profileReady: true,
@@ -135,12 +170,21 @@ export function useUserSubscription(): UserSubscriptionState {
           });
         }
       }
-    })();
+    },
+    [stripeSyncFirst]
+  );
 
+  useEffect(() => {
+    cancelledRef.current = false;
+    void loadProfile({ sessionKnown: false });
     return () => {
-      cancelled = true;
+      cancelledRef.current = true;
     };
-  }, []);
+  }, [loadProfile]);
 
-  return state;
+  const refetch = useCallback(async () => {
+    await loadProfile({ sessionKnown: true });
+  }, [loadProfile]);
+
+  return { ...state, refetch };
 }

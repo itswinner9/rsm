@@ -17,6 +17,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { DashboardClearSuccessQuery } from "@/components/dashboard/dashboard-clear-success-query";
 import { syncStripeSubscriptionForUser } from "@/lib/stripe/syncSubscription";
 import { hasPaidPlanAccess } from "@/lib/subscription/access";
+import { planSummaryFromStatus } from "@/lib/subscription/appShellPlan";
 import { parseResumeTemplateId, TEMPLATE_SHORT_LABEL } from "@/lib/resume/types";
 import { AtsTrendMini, type AtsTrendPoint } from "@/components/dashboard/AtsTrendMini";
 import type { Metadata } from "next";
@@ -117,7 +118,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Da
       <Suspense fallback={null}>
         <DashboardClearSuccessQuery />
       </Suspense>
-      <AppShell userEmail={user.email} isPro={hasPaidPlanAccess(profile?.subscription_status)}>
+      <AppShell userEmail={user.email} planSummary={planSummaryFromStatus(profile?.subscription_status)}>
         <div className="max-w-4xl mx-auto space-y-10 pb-16">
           {showPaymentSuccess && (
             <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 flex gap-3">

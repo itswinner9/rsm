@@ -21,6 +21,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { ManageBillingButton } from "@/components/profile/ManageBillingButton";
 import { syncStripeSubscriptionForUser } from "@/lib/stripe/syncSubscription";
 import { hasPaidPlanAccess } from "@/lib/subscription/access";
+import { planSummaryFromStatus } from "@/lib/subscription/appShellPlan";
 import { cn } from "@/lib/utils";
 import { siteDescription, openGraphDefaults } from "@/lib/site-metadata";
 import { parseResumeTemplateId, TEMPLATE_SHORT_LABEL } from "@/lib/resume/types";
@@ -103,7 +104,7 @@ export default async function ProfilePage() {
   const lastTemplate = lastGen ? parseResumeTemplateId(lastGen.selected_template) : null;
 
   return (
-    <AppShell userEmail={user.email} isPro={hasAccess}>
+    <AppShell userEmail={user.email} planSummary={planSummaryFromStatus(status)}>
       <div className="max-w-xl mx-auto space-y-8">
 
         {/* Header */}

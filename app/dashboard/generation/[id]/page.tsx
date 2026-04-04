@@ -7,6 +7,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { GenerationDetail } from "@/components/dashboard/GenerationDetail";
 import { syncStripeSubscriptionForUser } from "@/lib/stripe/syncSubscription";
 import { hasPaidPlanAccess } from "@/lib/subscription/access";
+import { planSummaryFromStatus } from "@/lib/subscription/appShellPlan";
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   const supabase = createClient();
@@ -55,10 +56,8 @@ async function getData(id: string) {
 
 export default async function GenerationPage({ params }: { params: { id: string } }) {
   const { user, profile, gen } = await getData(params.id);
-  const isSubscribed = hasPaidPlanAccess(profile?.subscription_status);
-
   return (
-    <AppShell userEmail={user.email} isPro={isSubscribed}>
+    <AppShell userEmail={user.email} planSummary={planSummaryFromStatus(profile?.subscription_status)}>
       <div className="max-w-6xl mx-auto space-y-8">
         <nav className="flex items-center gap-2 text-sm" aria-label="Breadcrumb">
           <Link

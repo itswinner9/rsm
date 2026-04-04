@@ -133,7 +133,20 @@ export const tierDefinitions: Record<PricingTierDefinition["id"], PricingTierDef
   },
 };
 
-export const pricingTierOrder: PricingTierDefinition["id"][] = ["starter", "monthly", "yearly"];
+/** Paid tiers only (two-column pricing; trial story is in the hero, not a third “starter” card). */
+export const pricingTierOrder: PricingTierDefinition["id"][] = ["monthly", "yearly"];
+
+/** Builder plan strip — loading (screen reader). */
+export const builderPlanLoadingHint = "Loading your plan";
+
+/** Builder — no paid access yet. */
+export const builderPlanNoAccessLine = "No subscription on this account yet.";
+
+export const builderPlanNoAccessCta =
+  "Start a 3-day trial with your card on the plans page, then $9.99/mo or $99.99/yr CAD.";
+
+/** Builder — trialing. */
+export const builderPlanTrialLine = "One optimization per UTC calendar day while trialing.";
 
 /** Hero line when logged in but not yet subscribed (pricing + home #pricing). */
 export const pricingHeroLoggedInNoSub =

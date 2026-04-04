@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
@@ -18,8 +18,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ResumifyBrand } from "@/components/brand/resumify-logo";
-
-const STRIPE_SYNC_SESSION_KEY = "rsm_stripe_sync_v1";
 
 const navGroups: {
   label: string;
@@ -45,55 +43,45 @@ const navGroups: {
   },
 ];
 
+/** Sidebar subscription footer aligned with builder plan strip. */
+export type AppShellPlanSummary = "loading" | "none" | "trial" | "active";
+
 interface AppShellProps {
   children: React.ReactNode;
   userEmail?: string;
+  /** Legacy: subscribed (trial or active); used only if planSummary is omitted. */
   isPro?: boolean;
+  /** Sidebar footer; use "loading" on client until profile is ready. */
+  planSummary?: AppShellPlanSummary;
 }
 
-export function AppShell({ children, userEmail, isPro }: AppShellProps) {
+export function AppShell({ children, userEmail, isPro, planSummary }: AppShellProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const syncStarted = useRef(false);
+
+  const effectivePlan: AppShellPlanSummary = planSummary ?? (isPro ? "active" : "none");
+
+  const hasPaidAccess = effectivePlan === "trial" || effectivePlan === "active";
 
   const sidebarNavGroups = useMemo(() => {
     let groups = navGroups;
-    if (isPro) {
+    if (hasPaidAccess) {
       groups = groups
         .filter((g) => g.label !== "Account")
         .map((g) =>
-          g.label === "More"
-            ? { ...g, items: g.items.filter((i) => i.href !== "/pricing") }
-            : g
+          g.label === "More" ? { ...g, items: g.items.filter((i) => i.href !== "/pricing") } : g
         )
         .filter((g) => g.items.length > 0);
     }
     return groups;
-  }, [isPro]);
+  }, [hasPaidAccess]);
 
   const displayName = userEmail?.split("@")[0] ?? "Account";
 
   useEffect(() => {
     setSidebarOpen(false);
   }, [pathname]);
-
-  useEffect(() => {
-    if (isPro || typeof window === "undefined" || syncStarted.current) return;
-    if (sessionStorage.getItem(STRIPE_SYNC_SESSION_KEY)) return;
-    syncStarted.current = true;
-    sessionStorage.setItem(STRIPE_SYNC_SESSION_KEY, "1");
-
-    (async () => {
-      try {
-        const res = await fetch("/api/stripe/sync", { method: "POST", credentials: "same-origin" });
-        const data = (await res.json()) as { active?: boolean };
-        if (data.active) router.refresh();
-      } catch {
-        /* ignore */
-      }
-    })();
-  }, [isPro, router]);
 
   const handleSignOut = async () => {
     await fetch("/api/auth/signout", { method: "POST" });
@@ -129,6 +117,69 @@ export function AppShell({ children, userEmail, isPro }: AppShellProps) {
     );
   };
 
+  const PlanFooter = () => {
+    const summary = effectivePlan;
+
+    if (summary === "loading") {
+      return (
+        <div className="mx-2 mb-2 rounded-xl border border-border bg-muted/30 px-3 py-3">
+          <div className="h-3 w-36 rounded bg-muted/80 animate-pulse mb-2" />
+          <div className="h-8 w-full rounded-full bg-muted/60 animate-pulse" />
+        </div>
+      );
+    }
+
+    if (summary === "trial") {
+      return (
+        <div className="mx-2 mb-2 rounded-xl border border-primary/15 bg-primary/[0.04] px-3 py-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <Crown className="size-3.5 text-primary shrink-0" strokeWidth={1.25} />
+              <span className="text-xs font-semibold text-foreground truncate">Trial · limited/day</span>
+            </div>
+            <Link
+              href="/profile"
+              className="text-[11px] text-muted-foreground hover:text-foreground transition-colors shrink-0"
+            >
+              Billing
+            </Link>
+          </div>
+        </div>
+      );
+    }
+
+    if (summary === "active") {
+      return (
+        <div className="mx-2 mb-2 rounded-xl border border-primary/15 bg-primary/[0.04] px-3 py-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <Crown className="size-3.5 text-primary shrink-0" strokeWidth={1.25} />
+              <span className="text-xs font-semibold text-foreground truncate">Pro · Unlimited</span>
+            </div>
+            <Link
+              href="/profile"
+              className="text-[11px] text-muted-foreground hover:text-foreground transition-colors shrink-0"
+            >
+              Billing
+            </Link>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="mx-2 mb-2 rounded-xl border border-border bg-muted/40 px-3 py-3">
+        <p className="text-xs text-muted-foreground mb-2">No plan yet — start a 3-day trial on Plans.</p>
+        <Link
+          href="/pricing"
+          className="block text-center text-xs font-medium rounded-full py-2.5 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+        >
+          View plans
+        </Link>
+      </div>
+    );
+  };
+
   const SidebarContent = () => (
     <div className="flex h-full flex-col">
       <div className="flex items-center px-4 py-4 border-b border-border">
@@ -152,32 +203,7 @@ export function AppShell({ children, userEmail, isPro }: AppShellProps) {
         ))}
       </nav>
 
-      {isPro ? (
-        <div className="mx-2 mb-2 rounded-xl border border-primary/15 bg-primary/[0.04] px-3 py-2.5">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <Crown className="size-3.5 text-primary shrink-0" strokeWidth={1.25} />
-              <span className="text-xs font-semibold text-foreground truncate">Full access · Unlimited</span>
-            </div>
-            <Link
-              href="/profile"
-              className="text-[11px] text-muted-foreground hover:text-foreground transition-colors shrink-0"
-            >
-              Billing
-            </Link>
-          </div>
-        </div>
-      ) : (
-        <div className="mx-2 mb-2 rounded-xl border border-border bg-muted/40 px-3 py-3">
-          <p className="text-xs text-muted-foreground mb-2">Upgrade for unlimited optimizations.</p>
-          <Link
-            href="/pricing"
-            className="block text-center text-xs font-medium rounded-full py-2.5 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-          >
-            View plans
-          </Link>
-        </div>
-      )}
+      <PlanFooter />
 
       <div className="border-t border-border px-2 py-2">
         <div className="flex items-center gap-1">

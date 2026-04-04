@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { CheckCircle, Zap, Crown, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { SiteHeader } from "@/components/layout/site-header";
@@ -31,7 +31,6 @@ function TierIcon({ icon }: { icon: PricingTierDefinition["icon"] }) {
 }
 
 function iconWrapClass(tier: PricingTierDefinition) {
-  if (tier.id === "starter") return "bg-muted border border-border";
   if (tier.id === "monthly") return "bg-amber-500/10 border border-amber-500/20";
   return "bg-primary/10 border border-primary/20";
 }
@@ -98,13 +97,28 @@ export default function PricingPage() {
             >
               {heroSubtitle}
             </motion.p>
+            {subscription.authReady &&
+              !subscription.isLoggedIn &&
+              subscription.profileReady && (
+                <motion.p
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.25 }}
+                  className="text-muted-foreground text-sm max-w-2xl mx-auto mt-4"
+                >
+                  New here?{" "}
+                  <Link href="/auth/signup" className="font-medium text-primary underline-offset-4 hover:underline">
+                    Create an account
+                  </Link>{" "}
+                  — then pick monthly or yearly for a 3-day trial (card at checkout).
+                </motion.p>
+              )}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-20">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-20 max-w-4xl mx-auto">
             {pricingTierOrder.map((tierId, idx) => {
               const tier = tierDefinitions[tierId];
               const delay = 0.2 + idx * 0.08;
-              const isStarter = tier.id === "starter";
               const checkoutKey = tier.checkoutPlan;
 
               return (
@@ -161,7 +175,7 @@ export default function PricingPage() {
                         <CheckCircle
                           className={cn(
                             "w-4 h-4 shrink-0 mt-0.5",
-                            isStarter ? "text-green-400" : "text-primary"
+                            tier.id === "monthly" ? "text-amber-500/90" : "text-primary"
                           )}
                         />
                         <span className="text-muted-foreground text-sm">{f}</span>
@@ -176,10 +190,7 @@ export default function PricingPage() {
                     isLoggedIn={subscription.isLoggedIn}
                     hasPaidAccess={subscription.hasPaidAccess}
                   />
-                  {tier.footerNote &&
-                  subscription.profileReady &&
-                  !(subscription.isLoggedIn && tier.id === "starter") &&
-                  !subscription.hasPaidAccess ? (
+                  {tier.footerNote && subscription.profileReady && !subscription.hasPaidAccess ? (
                     <p className="text-center text-muted-foreground/50 text-xs mt-3">{tier.footerNote}</p>
                   ) : null}
                   {tier.footerNote && subscription.profileReady && subscription.hasPaidAccess && checkoutKey ? (

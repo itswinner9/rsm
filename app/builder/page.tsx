@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Fragment } from "react";
+import { useState, useEffect, Fragment, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, Loader2, Sparkles, ChevronLeft, Check, Eye, LayoutDashboard } from "lucide-react";
@@ -12,13 +12,14 @@ import { TemplatePreviewCard } from "@/components/builder/TemplatePreviewCard";
 import { OptimizeLoadingPanel, OPTIMIZE_LOADING_STEPS } from "@/components/builder/OptimizeLoadingPanel";
 import { MatchImprovementCard } from "@/components/builder/MatchImprovementCard";
 import { ResumePreviewDialog } from "@/components/builder/ResumePreviewDialog";
-import { AppShell } from "@/components/layout/app-shell";
+import { AppShell, type AppShellPlanSummary } from "@/components/layout/app-shell";
+import { BuilderPlanStatus } from "@/components/builder/BuilderPlanStatus";
+import { useUserSubscription } from "@/hooks/use-user-subscription";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import type { OptimizedResumeData, ResumeTemplateId } from "@/lib/resume/types";
 import { TEMPLATE_META } from "@/lib/resume/types";
-import { hasPaidPlanAccess } from "@/lib/subscription/access";
 
 interface TemplatePreviewMeta {
   id: ResumeTemplateId;
@@ -67,7 +68,9 @@ export default function BuilderPage() {
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [optimizingStep, setOptimizingStep] = useState(0);
   const [userEmail, setUserEmail] = useState<string | undefined>();
-  const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
+  const { refetch: refetchSubscription, ...subscription } = useUserSubscription({
+    stripeSyncBeforeProfile: true,
+  });
   const [result, setResult] = useState<OptimizeResult | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<ResumeTemplateId>("classic");
   const [downloading, setDownloading] = useState<{ templateId: ResumeTemplateId; kind: "pdf" | "docx" } | null>(null);
@@ -78,15 +81,7 @@ export default function BuilderPage() {
     let cancelled = false;
     (async () => {
       try {
-        const [profileRes, meRes] = await Promise.all([
-          fetch("/api/user/profile"),
-          fetch("/api/user/me").catch(() => null),
-        ]);
-        if (!profileRes.ok) return;
-        const data = await profileRes.json();
-        if (!cancelled) {
-          setSubscriptionStatus(typeof data.subscription_status === "string" ? data.subscription_status : null);
-        }
+        const meRes = await fetch("/api/user/me").catch(() => null);
         if (meRes?.ok) {
           const me = await meRes.json();
           if (!cancelled) setUserEmail(me.email);
@@ -204,11 +199,7 @@ export default function BuilderPage() {
       setSelectedTemplate((data.suggested_template as ResumeTemplateId) || "classic");
       setStep(3);
 
-      const pr = await fetch("/api/user/profile").catch(() => null);
-      if (pr?.ok) {
-        const p = await pr.json();
-        setSubscriptionStatus(typeof p.subscription_status === "string" ? p.subscription_status : null);
-      }
+      await refetchSubscription();
     } catch (error) {
       toast({
         title: "Optimization failed",
@@ -285,8 +276,15 @@ export default function BuilderPage() {
     }
   };
 
-  const canGenerate = hasPaidPlanAccess(subscriptionStatus);
-  const isPaidActive = subscriptionStatus === "active";
+  const canGenerate = subscription.hasPaidAccess;
+  const isPaidActive = subscription.isActive;
+
+  const shellPlan: AppShellPlanSummary = useMemo(() => {
+    if (subscription.loading) return "loading";
+    if (!subscription.hasPaidAccess) return "none";
+    if (subscription.isTrialing) return "trial";
+    return "active";
+  }, [subscription.loading, subscription.hasPaidAccess, subscription.isTrialing]);
 
   const previewMeta = (id: ResumeTemplateId) => {
     const fromApi = result?.template_previews?.find((p) => p.id === id);
@@ -301,7 +299,7 @@ export default function BuilderPage() {
   ] as const;
 
   return (
-    <AppShell userEmail={userEmail} isPro={canGenerate}>
+    <AppShell userEmail={userEmail} planSummary={shellPlan}>
       <div className="max-w-6xl mx-auto">
         <div className="mb-8 sm:mb-10 flex flex-col gap-5 sm:gap-6">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
@@ -391,30 +389,7 @@ export default function BuilderPage() {
           </div>
         </div>
 
-        {subscriptionStatus !== null && !canGenerate && step < 3 && (
-          <div className="mb-6 rounded-2xl border border-border bg-muted/30 px-4 py-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              <span className="text-foreground font-medium">Subscription required.</span> Start a 3-day trial with your
-              card on the plans page, then $9.99/mo or $99.99/yr CAD.
-            </p>
-            <Button
-              size="sm"
-              className="shrink-0 rounded-full min-h-10 px-5 w-full sm:w-auto"
-              onClick={() => router.push("/pricing")}
-            >
-              View plans
-            </Button>
-          </div>
-        )}
-
-        {subscriptionStatus === "trialing" && step < 3 && (
-          <div className="mb-6 rounded-2xl border border-primary/20 bg-primary/[0.04] px-4 py-3.5">
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              <span className="text-foreground font-medium">Trial:</span> one optimization per UTC calendar day. Unlimited
-              runs once your paid period starts.
-            </p>
-          </div>
-        )}
+        {step < 3 && <BuilderPlanStatus subscription={subscription} />}
 
         <AnimatePresence mode="wait">
           {step === 1 && (

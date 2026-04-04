@@ -88,12 +88,26 @@ export function HomePricingSection() {
           >
             {heroSubtitle}
           </motion.p>
+          {subscription.authReady && !subscription.isLoggedIn && subscription.profileReady && (
+            <motion.p
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.12 }}
+              className="text-muted-foreground text-sm max-w-2xl mx-auto mt-4"
+            >
+              New here?{" "}
+              <Link href="/auth/signup" className="font-medium text-primary underline-offset-4 hover:underline">
+                Create an account
+              </Link>{" "}
+              — then choose monthly or yearly (3-day trial, card at checkout).
+            </motion.p>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-4xl mx-auto">
           {pricingTierOrder.map((tierId, idx) => {
             const tier = tierDefinitions[tierId];
-            const isStarter = tier.id === "starter";
             const checkoutKey = tier.checkoutPlan;
             const delay = 0.1 + idx * 0.06;
 
@@ -130,7 +144,6 @@ export function HomePricingSection() {
                   <div
                     className={cn(
                       "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-                      tier.id === "starter" && "bg-muted border border-border",
                       tier.id === "monthly" && "bg-amber-500/10 border border-amber-500/20",
                       tier.id === "yearly" && "bg-primary/10 border border-primary/20"
                     )}
@@ -158,7 +171,7 @@ export function HomePricingSection() {
                       <CheckCircle
                         className={cn(
                           "w-4 h-4 shrink-0 mt-0.5",
-                          isStarter ? "text-green-400" : "text-primary"
+                          tier.id === "monthly" ? "text-amber-500/90" : "text-primary"
                         )}
                       />
                       <span className="text-muted-foreground text-sm">{f}</span>
