@@ -33,6 +33,18 @@ export function extractStripeErrorMessage(err: unknown): string {
 export function getAppOrigin(): string {
   const fromEnv = process.env.NEXT_PUBLIC_APP_URL?.trim().replace(/\/$/, "");
   if (fromEnv?.startsWith("http")) return fromEnv;
+
+  // Prefer stable production hostname over per-deployment VERCEL_URL. Preview deployment URLs are
+  // often unique (*.vercel.app) and may be behind Vercel Deployment Protection (SSO); Stripe
+  // success/cancel would then send customers to vercel.com/sso/... instead of your app.
+  // VERCEL_PROJECT_PRODUCTION_URL is set on all deployments (shortest custom domain or *.vercel.app).
+  const productionHost = process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim().replace(/\/$/, "");
+  if (productionHost) {
+    return productionHost.startsWith("http")
+      ? productionHost.replace(/\/$/, "")
+      : `https://${productionHost}`;
+  }
+
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
   return "http://localhost:3000";
 }

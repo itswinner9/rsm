@@ -10,7 +10,7 @@ Copy [`.env.example`](../.env.example) to `.env.local` for local development. Co
 
 **Production:** Set this to your real HTTPS domain on Vercel. Do **not** leave it as `localhost` in Production (breaks email/OAuth links).
 
-**Vercel:** `VERCEL_URL` is injected automatically; some helpers fall back to `https://${VERCEL_URL}` when `NEXT_PUBLIC_APP_URL` is unset—still prefer setting `NEXT_PUBLIC_APP_URL` explicitly for stable canonical URLs.
+**Vercel:** When `NEXT_PUBLIC_APP_URL` is unset, Stripe redirect helpers prefer `VERCEL_PROJECT_PRODUCTION_URL` (stable production hostname) over `VERCEL_URL` (per-deployment URL, often blocked by Deployment Protection / SSO). Still set `NEXT_PUBLIC_APP_URL` to your real domain in Production.
 
 ## Supabase
 
