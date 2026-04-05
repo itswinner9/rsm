@@ -74,10 +74,10 @@ export function TrustedBySection() {
       {/* Content overlaid on the sparkle section */}
       <div className="absolute inset-0 flex flex-col items-center justify-center px-4 pb-8">
         <p className="text-center text-sm font-medium text-muted-foreground mb-2 uppercase tracking-widest">
-          Built for job seekers applying to
+          Where people actually apply
         </p>
         <h2 className="text-center text-2xl sm:text-3xl font-bold text-foreground mb-8">
-          Apply where hiring happens
+          Boards and brands you already use
         </h2>
 
         <div className="relative w-full max-w-3xl">

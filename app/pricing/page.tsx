@@ -51,8 +51,8 @@ export default function PricingPage() {
       const { ok, error } = await startStripeCheckout(plan, checkoutCtx);
       if (!ok) {
         toast({
-          title: "Checkout couldn’t start",
-          description: error || "Please try again.",
+          title: "Checkout didn’t start",
+          description: error || "Try again in a moment.",
           variant: "destructive",
           duration: typeof error === "string" && error.length > 120 ? 14_000 : 6_000,
         });
@@ -197,11 +197,6 @@ export default function PricingPage() {
                   />
                   {tier.footerNote && subscription.profileReady && !subscription.hasPaidAccess ? (
                     <p className="text-center text-muted-foreground/50 text-xs mt-3">{tier.footerNote}</p>
-                  ) : null}
-                  {tier.footerNote && subscription.profileReady && subscription.hasPaidAccess && checkoutKey ? (
-                    <p className="text-center text-muted-foreground/50 text-xs mt-3">
-                      Change or cancel in the billing portal.
-                    </p>
                   ) : null}
                 </motion.div>
               );

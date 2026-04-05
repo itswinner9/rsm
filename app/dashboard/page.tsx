@@ -29,11 +29,11 @@ import { siteDescription, openGraphDefaults } from "@/lib/site-metadata";
 
 export const metadata: Metadata = {
   title: "Recent",
-  description: "Your saved resume optimizations, match scores, and trends.",
+  description: "Saved resume runs, match scores, and trends — your Resumify dashboard.",
   robots: { index: false, follow: false },
   openGraph: {
     ...openGraphDefaults,
-    title: "Recent",
+    title: "Recent · Resumify",
     description: siteDescription,
   },
 };

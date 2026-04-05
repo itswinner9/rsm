@@ -4,11 +4,11 @@ import { openGraphDefaults, siteDescription } from "@/lib/site-metadata";
 export const metadata: Metadata = {
   title: "Sign up",
   description:
-    "Create your Resumify account at resumify.cc — one free full optimization, then upgrade for unlimited job-tailored resumes.",
+    "Create your Resumify account — try a free optimization, then upgrade for unlimited job-tailored resumes and exports.",
   robots: { index: true, follow: true },
   openGraph: {
     ...openGraphDefaults,
-    title: "Sign up",
+    title: "Sign up · Resumify",
     description: siteDescription,
   },
 };

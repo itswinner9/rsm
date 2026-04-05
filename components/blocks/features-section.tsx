@@ -6,39 +6,39 @@ import { FileText, Zap, Sparkles, Download, BarChart2, ShieldCheck } from 'lucid
 const features = [
     {
         icon: FileText,
-        title: 'Smart resume parsing',
+        title: 'Smart parsing',
         description:
-            'Upload PDF or DOCX — we pull roles, skills, and dates so you’re not retyping. More time applying, less time formatting.',
+            'Drop in PDF or DOCX—we surface roles, skills, and dates so you skip retyping. Spend time on applications, not formatting.',
     },
     {
         icon: BarChart2,
-        title: 'Keyword match you can act on',
+        title: 'Keyword match you can use',
         description:
-            'See overlap with the job description before you hit submit. Know what’s working, what’s missing, and what to add only if it’s true.',
+            'See overlap with the posting before you submit. Spot gaps, add what’s true, and skip the guesswork.',
     },
     {
         icon: Sparkles,
-        title: 'AI that respects your facts',
+        title: 'AI that keeps your facts',
         description:
-            'One optimized resume per job—clearer bullets and JD-aligned phrasing. We don’t invent employers, titles, or credentials.',
+            'One tailored resume per job: sharper bullets and phrasing aligned to the role. We don’t invent employers, titles, or credentials.',
     },
     {
         icon: Zap,
-        title: 'Multiple layouts, same story',
+        title: 'Layouts that fit the same story',
         description:
-            'Several layout options on one tailored resume. Pick the look; PDF and DOCX stay interview-ready.',
+            'Swap looks on one optimized resume. Pick a layout; PDF and DOCX stay polished for upload.',
     },
     {
         icon: Download,
-        title: 'Export and go',
+        title: 'Export in one click',
         description:
-            'Download PDF or DOCX in one click from any template. No watermarks, no extra tools—just your file, ready to upload.',
+            'PDF or DOCX from any template—no watermarks, no extra tools. Your file, ready for Indeed, LinkedIn, or the company site.',
     },
     {
         icon: ShieldCheck,
-        title: 'Your data, your account',
+        title: 'Your account, your data',
         description:
-            'Hosted on Supabase with row-level security. Your generations and uploads stay tied to your login—not a shared folder.',
+            'Hosted with row-level security. Generations and uploads stay under your login—never a shared folder.',
     },
 ];
 
@@ -53,7 +53,7 @@ export function FeaturesSection() {
                         viewport={{ once: true }}
                         className="text-muted-foreground text-xs uppercase tracking-widest font-medium mb-4"
                     >
-                        Why Resumify
+                        Why choose Resumify
                     </motion.p>
                     <motion.h2
                         initial={{ opacity: 0, y: 16 }}
@@ -62,7 +62,7 @@ export function FeaturesSection() {
                         transition={{ delay: 0.05 }}
                         className="text-foreground text-3xl sm:text-4xl font-bold tracking-tight mb-4"
                     >
-                        Clear for recruiters—aligned to the posting you paste
+                        Readable for humans—aligned to the job you paste
                     </motion.h2>
                     <motion.p
                         initial={{ opacity: 0, y: 16 }}
@@ -71,9 +71,8 @@ export function FeaturesSection() {
                         transition={{ delay: 0.1 }}
                         className="text-muted-foreground text-lg max-w-2xl mx-auto"
                     >
-                        Built for real job searches—Canadian resume norms first. Use it for postings on Indeed, LinkedIn,
-                        company sites, and anywhere else you apply. We don&apos;t know which tools a given employer uses;
-                        we help you match the job text you provide.
+                        Built for real searches—Canadian norms first, works for Indeed, LinkedIn, and company career pages.
+                        Every employer screens differently; we help you mirror the posting you paste—honestly.
                     </motion.p>
                 </div>
 

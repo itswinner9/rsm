@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ResumifyBrand } from "@/components/brand/resumify-logo";
+import { builderPlanNoAccessCompact } from "@/lib/pricing/planDisplay";
 
 const navGroups: {
   label: string;
@@ -135,7 +136,7 @@ export function AppShell({ children, userEmail, isPro, planSummary }: AppShellPr
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
               <Sparkles className="size-3.5 text-primary shrink-0" strokeWidth={1.25} />
-              <span className="text-xs font-semibold text-foreground truncate">Welcome · 1/day (3 days)</span>
+              <span className="text-xs font-semibold text-foreground truncate">Welcome · 1 run/day · 3 days</span>
             </div>
             <Link
               href="/pricing"
@@ -198,7 +199,7 @@ export function AppShell({ children, userEmail, isPro, planSummary }: AppShellPr
 
     return (
       <div className="mx-2 mb-2 rounded-xl border border-border bg-muted/40 px-3 py-3">
-        <p className="text-xs text-muted-foreground mb-2">No plan yet — subscribe on Plans.</p>
+        <p className="text-xs text-muted-foreground mb-2">{builderPlanNoAccessCompact}</p>
         <Link
           href="/pricing"
           className="block text-center text-xs font-medium rounded-full py-2.5 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"

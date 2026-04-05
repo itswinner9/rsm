@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import { openGraphDefaults, siteDescription } from "@/lib/site-metadata";
 
 export const metadata: Metadata = {
-  title: "Login",
-  description: "Sign in to Resumify (resumify.cc) to optimize resumes, track match scores, and manage billing.",
+  title: "Log in",
+  description:
+    "Sign in to Resumify — tailor resumes to each job, see match insights, export PDF/DOCX, manage billing.",
   robots: { index: false, follow: false },
   openGraph: {
     ...openGraphDefaults,
-    title: "Login",
+    title: "Log in · Resumify",
     description: siteDescription,
   },
 };

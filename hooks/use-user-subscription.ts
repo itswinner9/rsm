@@ -176,7 +176,23 @@ export function useUserSubscription(options?: UseUserSubscriptionOptions): UserS
 
       try {
         if (stripeSyncFirst) {
-          await fetch("/api/stripe/sync", { method: "POST", credentials: "same-origin" });
+          let syncBody: string | undefined;
+          if (typeof window !== "undefined") {
+            const p = new URLSearchParams(window.location.search);
+            if (p.get("success") === "true") {
+              const sid = p.get("session_id");
+              if (typeof sid === "string" && sid.startsWith("cs_")) {
+                syncBody = JSON.stringify({ session_id: sid });
+              }
+            }
+          }
+          await fetch("/api/stripe/sync", {
+            method: "POST",
+            credentials: "same-origin",
+            ...(syncBody
+              ? { headers: { "Content-Type": "application/json" }, body: syncBody }
+              : {}),
+          });
           if (cancelledRef.current) return;
         }
 

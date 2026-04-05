@@ -39,7 +39,7 @@ export const pricingHero = {
   eyebrow: "Plans · resumify.cc",
   title: "Invest in interviews—not ignored applications",
   subtitle:
-    "Resumify aligns your real experience to each job description you paste—match scoring against that text, cleaner wording, and exports to PDF or DOCX. Subscribers get resume storage—past runs and downloads on your dashboard. Yearly billing saves about $20 vs paying monthly for the same features. Subscribe with a card in CAD (monthly or yearly).",
+    "Tailor your real experience to every job description: match scoring on the text you paste, clearer wording, PDF or DOCX export, and your run history on the dashboard. Monthly or yearly in CAD—yearly saves about $20 vs twelve monthly payments for the same features.",
 };
 
 /** Shown while session or profile is loading so we don’t flash guest-only copy to signed-in users. */
@@ -47,9 +47,9 @@ export const pricingHeroProfileLoading = "Checking your account…";
 
 export const homePricingHero = {
   eyebrow: "Plans · resumify.cc",
-  title: "A few dollars a month vs. months of silence",
+  title: "A small monthly fee vs. months of silence",
   subtitle:
-    "Subscribe with a card at checkout (CAD). While your subscription is active you get unlimited optimizations and resume storage on your dashboard. Yearly saves about $20 vs paying monthly for the same features. All prices in CAD via Stripe.",
+    "Pay by card at checkout (CAD). While you’re subscribed: unlimited optimizations and your resume history on the dashboard. Yearly saves ~$20 vs paying monthly—same features. Prices in CAD via Stripe.",
 };
 
 export const homePricingHeroProfileLoading = pricingHeroProfileLoading;
@@ -58,14 +58,14 @@ export const tierDefinitions: Record<PricingTierDefinition["id"], PricingTierDef
   starter: {
     id: "starter",
     displayName: "How it works",
-    tagline: "Card at checkout — subscription in CAD",
+    tagline: "Card at checkout — billed in CAD",
     priceAmount: "From",
     priceSuffix: "$9.99/mo",
     featuresDetailed: [
-      "Create an account, then pick Monthly or Yearly",
+      "Create an account, then choose Monthly or Yearly",
       "Pay securely with Stripe Checkout",
       "Unlimited optimizations while your subscription is active",
-      "Cancel or change plan in the Stripe billing portal",
+      "Cancel or switch plans in the billing portal",
     ],
     featuresHome: [
       "Stripe Checkout — secure, PCI-compliant",
@@ -75,27 +75,27 @@ export const tierDefinitions: Record<PricingTierDefinition["id"], PricingTierDef
     ctaLabel: "Create account",
     signupHref: "/auth/signup",
     icon: "zap",
-    footerNote: "Then pick Monthly or Yearly on the plans page.",
+    footerNote: "Then choose Monthly or Yearly on the plans page.",
   },
   monthly: {
     id: "monthly",
     displayName: "Monthly",
-    tagline: "Flexible — stay as long as your search lasts",
+    tagline: "Flexible — stay month-to-month while you search",
     priceAmount: "$9.99",
     priceSuffix: "/ month CAD",
     featuresDetailed: [
-      "Everything included:",
-      "Unlimited optimizations & exports while subscribed",
-      "Resume storage: past runs & downloads on your dashboard",
-      "AI bullet, summary & headline tools",
-      "Job-description keyword alignment & match scoring",
-      "Full template library · PDF & DOCX",
-      "Manage or cancel in the billing portal",
+      "Billed every month in CAD — cancel anytime from the billing portal",
+      "Unlimited resume optimizations and PDF or DOCX exports while subscribed",
+      "Dashboard history: past runs, downloads, and saved versions",
+      "AI help for bullets, summaries, and headlines — grounded in what you uploaded",
+      "Keyword alignment and match scoring for each job description you paste",
+      "Full template library — same story, multiple professional layouts",
+      "Update your card or plan in the Stripe billing portal",
     ],
     featuresHome: [
-      "Monthly billing in CAD",
-      "Unlimited runs while subscribed · resume history on your dashboard",
-      "Cancel anytime from billing portal",
+      "Billed monthly in CAD",
+      "Unlimited optimizations · full history on your dashboard",
+      "Cancel anytime from the billing portal",
     ],
     ctaLabel: "Start monthly",
     checkoutPlan: "month",
@@ -106,21 +106,22 @@ export const tierDefinitions: Record<PricingTierDefinition["id"], PricingTierDef
   yearly: {
     id: "yearly",
     displayName: "Yearly",
-    tagline: "Best value — save ~$20/yr vs monthly (same features)",
+    tagline: "Best value — save ~$20/yr vs paying monthly (same features)",
     priceAmount: "$99.99",
     priceSuffix: "/ year CAD",
     featuresDetailed: [
-      "Same product as Monthly — about $8.33/mo effective vs $9.99/mo",
-      "Yearly billing in CAD",
-      "Unlimited optimizations while subscribed",
-      "Resume storage: past runs & exports on your dashboard",
-      "AI rewrites, templates, match insights, exports",
-      "Receipts & payment method in Stripe portal",
+      "Billed once per year in CAD — about $8.33/mo effective (save ~$20 vs 12× monthly)",
+      "Unlimited resume optimizations and PDF or DOCX exports while subscribed",
+      "Dashboard history: past runs, downloads, and saved versions",
+      "AI help for bullets, summaries, and headlines — grounded in what you uploaded",
+      "Keyword alignment and match scoring for each job description you paste",
+      "Full template library — same story, multiple professional layouts",
+      "Update your card or plan in the Stripe billing portal",
     ],
     featuresHome: [
-      "~$20 less per year than 12× monthly — same unlimited access",
-      "Annual billing in CAD",
-      "Resume history & downloads on your dashboard",
+      "Billed yearly in CAD (~$8.33/mo effective)",
+      "Unlimited optimizations · full history on your dashboard",
+      "Same everything as Monthly — lower annual price",
     ],
     ctaLabel: "Start yearly",
     checkoutPlan: "year",
@@ -130,7 +131,7 @@ export const tierDefinitions: Record<PricingTierDefinition["id"], PricingTierDef
     ],
     highlight: true,
     icon: "sparkles",
-    footerNote: "Billed once per year. Manage in Stripe Customer Portal.",
+    footerNote: "One annual charge. Receipts in the billing portal.",
   },
 };
 
@@ -144,43 +145,43 @@ export const builderPlanLoadingHint = "Loading your plan";
 export const builderPlanNoAccessLine = "No plan yet.";
 
 export const builderPlanNoAccessCta =
-  "Subscribe on Plans (card at checkout) — $9.99/mo or $99.99/yr CAD.";
+  "Subscribe on Plans (card at checkout): $9.99/mo or $99.99/yr CAD.";
 
 /** Builder compact strip — one short line + CTA. */
-export const builderPlanNoAccessCompact = "No plan yet — subscribe on Plans.";
+export const builderPlanNoAccessCompact = "No plan yet — open Plans to subscribe.";
 
 /** Free welcome window: already ran today (UTC). */
 export const builderPlanWelcomeDailyWaitCompact =
-  "Welcome: you used today’s free credit (UTC). Come back tomorrow or upgrade for unlimited runs.";
+  "You’ve used today’s free run (UTC). Back tomorrow—or upgrade for unlimited runs.";
 
 export const builderPlanWelcomeDailyWaitLine =
   "You’ve used your free optimization for today (UTC). Come back tomorrow, or upgrade for unlimited runs.";
 
 /** Free welcome: 3 runs used. */
 export const builderPlanWelcomeCapCompact =
-  "You’ve used all 3 free runs. Upgrade for unlimited optimizations and resume storage.";
+  "All 3 free runs used. Upgrade for unlimited optimizations and saved resumes.";
 
 /** Free welcome window ended (72h). */
 export const builderPlanWelcomeEndedCompact =
-  "Your free window has ended. Subscribe on Plans for unlimited runs and stored resumes.";
+  "Your welcome window ended. Subscribe on Plans for unlimited runs and storage.";
 
 /** Builder — trialing. */
 export const builderPlanTrialLine = "One optimization per UTC calendar day while trialing.";
 
 /** Builder — free plan (3-day window from first free run, no card). */
 export const builderPlanWelcomeLine =
-  "Welcome: one free optimization per UTC day, up to 3 uses within 3 days from your first free run. Upgrade anytime for unlimited runs.";
+  "Welcome: one free optimization per UTC day (up to 3 total in your first 3 days from your first free run). Upgrade anytime for unlimited runs.";
 
 /** Hero line when logged in but not yet subscribed (pricing + home #pricing). */
 export const pricingHeroLoggedInNoSub =
-  "You're signed in — choose monthly or yearly and complete checkout with your card (CAD).";
+  "You’re signed in — pick monthly or yearly and check out with your card (CAD).";
 
 /** Hero line when user already has trialing or active access. */
 export function pricingHeroSubscriberLine(isTrialing: boolean, trialEndLabel: string | null): string {
   if (isTrialing && trialEndLabel) {
-    return `Your trial is on this account (ends ${trialEndLabel}). Billing and plan changes are in your profile — no need to subscribe again.`;
+    return `Your trial is on this account (ends ${trialEndLabel}). Change billing or plan under Manage billing — no second checkout.`;
   }
-  return "Your plan is active on this account. Manage billing or change plans from your profile — no second subscription needed.";
+  return "You’re subscribed — update payment, plan, or receipts via Manage billing. No need to check out again.";
 }
 
 export const manageBillingLabel = "Manage billing";
@@ -195,26 +196,26 @@ export const faqSectionTitle = "Common questions";
 export const pricingFaqs: { q: string; a: string }[] = [
   {
     q: "Do you “beat” applicant tracking systems?",
-    a: "No—and anyone who promises that across hundreds of different employer tools isn’t being straight with you. Resumify compares your resume to the job description you paste (keyword overlap) and helps you write more clearly for that role. What happens after you upload depends on that employer’s process, which we don’t control or reverse-engineer.",
+    a: "No—and anyone who promises that across every employer’s tools isn’t being straight with you. Resumify compares your resume to the job description you paste (keyword overlap) and helps you write more clearly for that role. After you upload, the employer’s process applies—we don’t control or reverse-engineer it.",
   },
   {
     q: "Why match my resume to the job posting?",
-    a: "Hiring teams often start from the text of the role. If your resume doesn’t reflect important language from the posting—or is hard to read—your fit can be missed. We help you tune one truthful resume to the description you provide. We show it in five layouts (same facts and wording, different visual structure) so you can pick the look you like and export PDF or DOCX from any layout.",
+    a: "Hiring teams start from the role’s text. If your resume doesn’t reflect important language from the posting—or is hard to read—your fit can be missed. We help you tune one truthful resume to the description you provide, then preview it in several layouts (same facts, different structure) and export PDF or DOCX from whichever you prefer.",
   },
   {
     q: "Will you invent jobs, skills, or credentials on my resume?",
-    a: "No. We improve how your real experience is written and align phrasing with the role you’re targeting. Employers, job titles, dates, education, and certifications stay grounded in what you uploaded. Always review the result before you apply.",
+    a: "No. We improve how your real experience reads and align phrasing with the role you’re targeting. Employers, titles, dates, education, and certifications stay grounded in what you uploaded. Always review before you apply.",
   },
   {
     q: "How do I cancel or change my plan?",
-    a: "Use the Stripe Customer Portal from your account (Manage billing). You keep access through the period you’ve already paid for.",
+    a: "Open Manage billing (Stripe Customer Portal) from your account. You keep access through the period you’ve already paid for.",
   },
   {
     q: "What’s the difference between Monthly and Yearly?",
-    a: "Same features—unlimited optimizations while your subscription is active. Monthly bills each month in CAD; Yearly bills once per year at a lower effective monthly rate. Pick the cadence that fits your job search.",
+    a: "Same features: unlimited optimizations while your subscription is active. Monthly charges each month in CAD; Yearly charges once per year at a lower effective rate (about $20 less than twelve monthly payments). Pick what fits your search.",
   },
   {
     q: "When am I charged?",
-    a: "You add a card in Stripe Checkout. Billing follows your plan (monthly or yearly in CAD) and what Stripe shows before you pay. Manage or cancel anytime in the billing portal.",
+    a: "You pay in Stripe Checkout with your card. After that, billing follows the plan you chose (monthly or yearly in CAD)—exact totals are on the checkout screen before you confirm. Change or cancel anytime in the billing portal.",
   },
 ];

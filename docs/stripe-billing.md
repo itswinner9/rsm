@@ -60,12 +60,12 @@ Subscribe to at least:
 If you use **`NEXT_PUBLIC_STRIPE_PAYMENT_LINK_MONTHLY`**, configure the link in Stripe:
 
 1. **After payment** — set the customer-facing completion to **redirect** to your app, e.g.  
-   `https://resumify.cc/dashboard?success=true`  
-   (Use your real domain; local dev: `http://localhost:3002/dashboard?success=true`.)
+   `https://resumify.cc/builder?success=true`  
+   (Use your real domain; local dev: `http://localhost:3002/builder?success=true`. Stripe appends `session_id` for API Checkout; Payment Links can use `?success=true` alone — the client still runs `POST /api/stripe/sync`.)
 
 2. The app appends **`client_reference_id`** (Supabase user id) and **`prefilled_email`** when the user is logged in, so `checkout.session.completed` can update `user_profiles` immediately.
 
-3. On `/dashboard?success=true`, the server runs **Stripe sync** and the **Payment success** banner polls **`POST /api/stripe/sync`** until subscription data is ready.
+3. On **`/builder?success=true`** (and `session_id` when present), the client runs **`POST /api/stripe/sync`** so paid access is reflected before optimizing. API Checkout uses this return URL by default.
 
 ## Managed Payments (sandbox / production)
 

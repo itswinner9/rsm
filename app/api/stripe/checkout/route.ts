@@ -88,7 +88,7 @@ export async function POST(request: Request) {
       mode: "subscription",
       client_reference_id: user.id,
       line_items: lineItems,
-      success_url: `${origin}/dashboard?success=true&session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${origin}/builder?success=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/pricing?checkout=canceled`,
       allow_promotion_codes: true,
       // No Stripe free trial: first-time usage limits are enforced in-app (free plan / welcome window).

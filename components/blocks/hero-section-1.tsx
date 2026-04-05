@@ -43,12 +43,12 @@ export function HeroSection() {
             ? '/dashboard'
             : '/builder'
     const pillLabel = !ctaReady
-        ? 'resumify.cc · Try your first optimization free'
+        ? 'resumify.cc · First optimization free'
         : !isLoggedIn
-          ? 'resumify.cc · Try your first optimization free'
+          ? 'resumify.cc · First optimization free'
           : paid
             ? 'Welcome back — open dashboard'
-            : 'Welcome back — resume builder'
+            : 'Welcome back — open builder'
 
     const primaryHref = !ctaReady
         ? '/auth/signup'
@@ -58,9 +58,9 @@ export function HeroSection() {
             ? '/dashboard'
             : '/builder'
     const primaryLabel = !ctaReady
-        ? 'Build My Resume Free'
+        ? 'Build my resume — free'
         : !isLoggedIn
-          ? 'Build My Resume Free'
+          ? 'Build my resume — free'
           : paid
             ? 'Open dashboard'
             : 'Open resume builder'
@@ -74,12 +74,12 @@ export function HeroSection() {
             ? '/dashboard'
             : '/builder'
     const trustedLabel = !ctaReady
-        ? 'Start Optimizing Your Resume'
+        ? 'Start optimizing'
         : !isLoggedIn
-          ? 'Start Optimizing Your Resume'
+          ? 'Start optimizing'
           : paid
             ? 'Continue to dashboard'
-            : 'Continue to resume builder'
+            : 'Continue to builder'
 
     return (
         <>
@@ -158,12 +158,11 @@ export function HeroSection() {
                                     </Link>
 
                                     <h1 className="mt-8 max-w-4xl mx-auto text-balance text-6xl md:text-7xl lg:mt-16 xl:text-[5.25rem]">
-                                        A resume builder that gets you job-ready—not generic
+                                        A resume builder that gets you noticed—without the fluff
                                     </h1>
                                     <p className="mx-auto mt-8 max-w-2xl text-balance text-lg">
-                                        Tailor your real experience to each posting: keyword overlap with the job text,
-                                        clearer AI-tuned wording, and multiple professional layouts. Export PDF or DOCX when
-                                        you&apos;re ready to apply.
+                                        Match each posting you care about: keyword overlap with the job text, clearer
+                                        wording, professional layouts. Export PDF or DOCX and apply with confidence.
                                     </p>
                                 </AnimatedGroup>
 
@@ -251,7 +250,7 @@ export function HeroSection() {
                 <section className="bg-background pb-16 pt-16 md:pb-32">
                     <div className="group relative m-auto max-w-5xl px-6">
                         <p className="text-center text-muted-foreground text-sm mb-10 tracking-wide uppercase text-xs font-medium">
-                            Trusted by job seekers targeting top Canadian employers
+                            Built for people applying across Canada—and anywhere online
                         </p>
                         <div className="absolute inset-0 z-10 flex scale-95 items-center justify-center opacity-0 duration-500 group-hover:scale-100 group-hover:opacity-100">
                             <Link

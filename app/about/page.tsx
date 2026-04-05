@@ -5,9 +5,9 @@ import { SITE_DOMAIN, SITE_NAME } from "@/lib/site-nav";
 import { Button } from "@/components/ui/button";
 
 const highlights = [
-  "Resume + job description → one tailored version",
-  "Keyword overlap and honest gaps, no invented facts",
-  "Three layouts, PDF or DOCX",
+  "Resume + posting → one tailored version per role",
+  "Keyword overlap and clear gaps—no invented facts",
+  "Multiple layouts · PDF or DOCX",
 ];
 
 export default function AboutPage() {
@@ -19,11 +19,10 @@ export default function AboutPage() {
         <div className="mx-auto max-w-xl">
           <p className="text-xs font-medium tracking-wide text-muted-foreground">{SITE_DOMAIN}</p>
           <h1 className="mt-3 text-4xl font-semibold tracking-tight text-foreground sm:text-5xl text-balance">
-            Resumes that match the role—not a generic file.
+            Resumes that fit the role—not a one-size file
           </h1>
           <p className="mt-6 text-base leading-relaxed text-muted-foreground sm:text-[17px]">
-            {SITE_NAME} turns your real experience into a clear story for each posting—so your fit is obvious to the
-            people (and tools) on the other side.
+            {SITE_NAME} shapes your real experience into a clear story for each posting—so recruiters see why you fit.
           </p>
 
           <ul className="mt-10 space-y-3 border-t border-border pt-10 text-[15px] leading-relaxed text-muted-foreground">
@@ -36,14 +35,12 @@ export default function AboutPage() {
           </ul>
 
           <p className="mt-10 rounded-2xl bg-muted/50 px-5 py-4 text-sm leading-relaxed text-muted-foreground">
-            <span className="font-medium text-foreground">100+</span> job seekers used {SITE_NAME} in the first weeks
-            after launch—many said they finally felt good hitting submit. Outcomes vary; the aim is fewer ignored
-            applications and more conversations.
+            <span className="font-medium text-foreground">100+</span> job seekers tried {SITE_NAME} in the first weeks—many
+            said they felt better hitting submit. Results vary; the goal is clearer applications and more replies.
           </p>
 
           <p className="mt-8 text-sm leading-relaxed text-muted-foreground">
-            Built for anyone applying online—Canada and beyond—whether you are switching paths, graduating, or sending
-            several apps a week.
+            For anyone applying online—Canada first, works worldwide—career switches, new grads, or high-volume searches.
           </p>
 
           <div className="mt-12 flex flex-wrap items-center gap-3">

@@ -12,28 +12,28 @@ const steps = [
         icon: Upload,
         title: 'Upload your resume',
         description:
-            'PDF, DOCX, or paste text. We extract roles, skills, and dates so you start from what you already have—no blank-page panic.',
+            'PDF, DOCX, or paste text. We pull roles, skills, and dates—you start from what you already wrote, not a blank page.',
     },
     {
         number: '02',
         icon: ClipboardList,
         title: 'Paste the job description',
         description:
-            'Drop in the full posting from LinkedIn, Indeed, or the company site. Better JD text = better keyword alignment and a truer match score.',
+            'Use the full posting from LinkedIn, Indeed, or the company site. Richer JD text means tighter keyword alignment and a clearer match score.',
     },
     {
         number: '03',
         icon: Sparkles,
-        title: 'Get one tailored resume + insights',
+        title: 'Get a tailored resume + insights',
         description:
-            'Resumify rewrites one tailored resume for that role, shows honest gaps and strengths, then previews it in several professional layouts.',
+            'One optimized resume for that role: strengths, gaps, and JD-aligned phrasing—then preview it in several professional layouts.',
     },
     {
         number: '04',
         icon: Download,
-        title: 'Choose a layout & export',
+        title: 'Pick a layout, export, apply',
         description:
-            'Compare multiple layouts (classic through minimal). Export PDF or DOCX from whichever look you like—the content stays the same, written for clarity and the role you chose.',
+            'Compare layouts side by side. Export PDF or DOCX from the look you want—same content, tuned for the role.',
     },
 ];
 
@@ -78,7 +78,7 @@ export function HowItWorksSection() {
                         transition={{ delay: 0.05 }}
                         className="text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl"
                     >
-                        From upload to “ready to apply” in minutes
+                        From upload to ready-to-send in minutes
                     </motion.h2>
                     <motion.p
                         initial={{ opacity: 0, y: 12 }}
@@ -87,7 +87,7 @@ export function HowItWorksSection() {
                         transition={{ delay: 0.1 }}
                         className="mt-4 text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg"
                     >
-                        No templates to fight. Paste a job, review your score and insights, then send a file you trust.
+                        Skip template wrestling. Paste a job, read your score and insights, then download a file you stand behind.
                     </motion.p>
                 </div>
 
@@ -148,7 +148,7 @@ export function HowItWorksSection() {
                 >
                     <Button asChild size="lg" className="h-12 rounded-full px-8 text-base font-medium shadow-sm">
                         <Link href="/auth/signup">
-                            Try it free — no card needed
+                            Try free — no card
                             <ArrowRight className="ml-2 size-4" />
                         </Link>
                     </Button>

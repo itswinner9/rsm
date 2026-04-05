@@ -2,19 +2,21 @@ import type { Metadata } from "next";
 import { SITE_DOMAIN, SITE_NAME } from "@/lib/site-nav";
 
 export const siteDescription =
-  "Resumify at resumify.cc — AI resume builder that tailors your real experience to each job. Keyword overlap with the posting, clear wording, multiple layouts, PDF & DOCX export. Built for Canada and beyond.";
+  "Resumify — AI resume builder that tailors your real experience to each job posting. Keyword match with the role, ATS-friendly clarity (honest wording—no magic guarantees), multiple layouts, PDF and DOCX export. Made for Canada; works anywhere you apply.";
 
 export const siteKeywords: string[] = [
   "Resumify",
   "resumify.cc",
+  "AI resume builder",
   "tailored resume",
+  "job-tailored resume",
   "resume optimizer",
-  "AI resume",
-  "Canadian resume",
-  "job application",
+  "ATS friendly resume",
   "keyword match resume",
-  "resume PDF",
-  "Indeed LinkedIn resume",
+  "Canadian resume",
+  "PDF resume",
+  "DOCX resume",
+  "Indeed LinkedIn job application",
 ];
 
 /** Canonical origin for SEO when env is unset (production). */

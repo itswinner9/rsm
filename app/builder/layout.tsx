@@ -7,10 +7,11 @@ import { siteDescription, openGraphDefaults } from "@/lib/site-metadata";
 export const metadata: Metadata = {
   title: "Resume builder",
   description:
-    "Upload your resume, paste a job description, and get job-tailored layouts with PDF and DOCX export.",
+    "Upload your resume, paste a job description, and get a tailored version—keyword insights, layouts, PDF or DOCX export.",
+  robots: { index: false, follow: false },
   openGraph: {
     ...openGraphDefaults,
-    title: "Resume builder",
+    title: "Resume builder · Resumify",
     description: siteDescription,
   },
 };

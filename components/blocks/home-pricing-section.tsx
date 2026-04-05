@@ -43,8 +43,8 @@ export function HomePricingSection() {
       const { ok, error } = await startStripeCheckout(plan, checkoutCtx);
       if (!ok) {
         toast({
-          title: "Checkout couldn’t start",
-          description: error || "Please try again.",
+          title: "Checkout didn’t start",
+          description: error || "Try again in a moment.",
           variant: "destructive",
           duration: typeof error === "string" && error.length > 120 ? 14_000 : 6_000,
         });

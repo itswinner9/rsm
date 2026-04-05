@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Fragment, useMemo } from "react";
+import { useState, useEffect, Fragment, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, Loader2, Sparkles, ChevronLeft, Check, Eye, LayoutDashboard } from "lucide-react";
@@ -71,6 +71,7 @@ export default function BuilderPage() {
   const { refetch: refetchSubscription, ...subscription } = useUserSubscription({
     stripeSyncBeforeProfile: true,
   });
+  const checkoutUrlCleaned = useRef(false);
   const [result, setResult] = useState<OptimizeResult | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<ResumeTemplateId>("classic");
   const [downloading, setDownloading] = useState<{ templateId: ResumeTemplateId; kind: "pdf" | "docx" } | null>(null);
@@ -94,6 +95,16 @@ export default function BuilderPage() {
       cancelled = true;
     };
   }, []);
+
+  /** After Stripe checkout return, drop ?success=&session_id= from the address bar. */
+  useEffect(() => {
+    if (!subscription.profileReady || checkoutUrlCleaned.current) return;
+    if (typeof window === "undefined") return;
+    const p = new URLSearchParams(window.location.search);
+    if (p.get("success") !== "true" || !p.get("session_id")?.startsWith("cs_")) return;
+    checkoutUrlCleaned.current = true;
+    router.replace("/builder", { scroll: false });
+  }, [subscription.profileReady, router]);
 
   const handleResumeParsed = (text: string, id: string, name: string) => {
     setResumeText(text);
