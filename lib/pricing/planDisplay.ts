@@ -1,5 +1,5 @@
 /**
- * User-visible pricing copy. Checkout uses Stripe plans `month` | `year` (3-day card trial).
+ * User-visible pricing copy. Checkout uses Stripe plans `month` | `year` (card required; no Stripe trial period).
  */
 
 export type CheckoutPlanId = "month" | "year";
@@ -20,7 +20,7 @@ export interface PricingTierDefinition {
   tagline: string;
   /** e.g. "$0" / "$9.99" */
   priceAmount: string;
-  /** e.g. "3-day trial" / "/ month" */
+  /** e.g. "From" / "/ month" */
   priceSuffix: string;
   featuresDetailed: string[];
   featuresHome: string[];
@@ -39,7 +39,7 @@ export const pricingHero = {
   eyebrow: "Plans · resumify.cc",
   title: "Invest in interviews—not ignored applications",
   subtitle:
-    "Resumify aligns your real experience to each job description you paste—match scoring against that text, cleaner wording, and exports to PDF or DOCX. Subscribers get resume storage—past runs and downloads on your dashboard. Yearly billing saves about $20 vs paying monthly for the same features. Start with a 3-day trial (card at checkout), then monthly or yearly in CAD.",
+    "Resumify aligns your real experience to each job description you paste—match scoring against that text, cleaner wording, and exports to PDF or DOCX. Subscribers get resume storage—past runs and downloads on your dashboard. Yearly billing saves about $20 vs paying monthly for the same features. Subscribe with a card in CAD (monthly or yearly).",
 };
 
 /** Shown while session or profile is loading so we don’t flash guest-only copy to signed-in users. */
@@ -49,7 +49,7 @@ export const homePricingHero = {
   eyebrow: "Plans · resumify.cc",
   title: "A few dollars a month vs. months of silence",
   subtitle:
-    "Subscribe with a card to start your 3-day trial (card required at checkout): one optimization per UTC day while trialing, then unlimited while your subscription is active. Yearly saves about $20 vs paying monthly for the same features—including resume storage of your runs on the dashboard. All prices in CAD via Stripe.",
+    "Subscribe with a card at checkout (CAD). While your subscription is active you get unlimited optimizations and resume storage on your dashboard. Yearly saves about $20 vs paying monthly for the same features. All prices in CAD via Stripe.",
 };
 
 export const homePricingHeroProfileLoading = pricingHeroProfileLoading;
@@ -58,20 +58,19 @@ export const tierDefinitions: Record<PricingTierDefinition["id"], PricingTierDef
   starter: {
     id: "starter",
     displayName: "How it works",
-    tagline: "Card required — trial, then your chosen plan",
-    /** Non-breaking space avoids "3-daytrial" if styles collapse normal spaces. */
-    priceAmount: "3-day\u00a0trial",
-    priceSuffix: "",
+    tagline: "Card at checkout — subscription in CAD",
+    priceAmount: "From",
+    priceSuffix: "$9.99/mo",
     featuresDetailed: [
-      "Add a payment method to start (no charge until the trial ends)",
-      "During trial: 1 optimization per calendar day (UTC)",
-      "After trial: unlimited optimizations on an active subscription",
+      "Create an account, then pick Monthly or Yearly",
+      "Pay securely with Stripe Checkout",
+      "Unlimited optimizations while your subscription is active",
       "Cancel or change plan in the Stripe billing portal",
     ],
     featuresHome: [
       "Stripe Checkout — secure, PCI-compliant",
-      "Trial then $9.99/mo or $99.99/yr CAD",
-      "1 run per UTC day on trial, then unlimited",
+      "$9.99/mo or $99.99/yr CAD",
+      "Unlimited runs while subscribed",
     ],
     ctaLabel: "Create account",
     signupHref: "/auth/signup",
@@ -85,7 +84,7 @@ export const tierDefinitions: Record<PricingTierDefinition["id"], PricingTierDef
     priceAmount: "$9.99",
     priceSuffix: "/ month CAD",
     featuresDetailed: [
-      "Everything after trial, including:",
+      "Everything included:",
       "Unlimited optimizations & exports while subscribed",
       "Resume storage: past runs & downloads on your dashboard",
       "AI bullet, summary & headline tools",
@@ -94,8 +93,8 @@ export const tierDefinitions: Record<PricingTierDefinition["id"], PricingTierDef
       "Manage or cancel in the billing portal",
     ],
     featuresHome: [
-      "3-day trial with card, then monthly billing",
-      "Unlimited runs after trial · resume history on your dashboard",
+      "Monthly billing in CAD",
+      "Unlimited runs while subscribed · resume history on your dashboard",
       "Cancel anytime from billing portal",
     ],
     ctaLabel: "Start monthly",
@@ -112,7 +111,7 @@ export const tierDefinitions: Record<PricingTierDefinition["id"], PricingTierDef
     priceSuffix: "/ year CAD",
     featuresDetailed: [
       "Same product as Monthly — about $8.33/mo effective vs $9.99/mo",
-      "3-day trial, then yearly billing in CAD",
+      "Yearly billing in CAD",
       "Unlimited optimizations while subscribed",
       "Resume storage: past runs & exports on your dashboard",
       "AI rewrites, templates, match insights, exports",
@@ -120,7 +119,7 @@ export const tierDefinitions: Record<PricingTierDefinition["id"], PricingTierDef
     ],
     featuresHome: [
       "~$20 less per year than 12× monthly — same unlimited access",
-      "3-day trial then annual billing",
+      "Annual billing in CAD",
       "Resume history & downloads on your dashboard",
     ],
     ctaLabel: "Start yearly",
@@ -145,10 +144,10 @@ export const builderPlanLoadingHint = "Loading your plan";
 export const builderPlanNoAccessLine = "No plan yet.";
 
 export const builderPlanNoAccessCta =
-  "Start a 3-day trial on Plans (card on file), then $9.99/mo or $99.99/yr CAD.";
+  "Subscribe on Plans (card at checkout) — $9.99/mo or $99.99/yr CAD.";
 
 /** Builder compact strip — one short line + CTA. */
-export const builderPlanNoAccessCompact = "No plan yet — start a 3-day trial on Plans.";
+export const builderPlanNoAccessCompact = "No plan yet — subscribe on Plans.";
 
 /** Free welcome window: already ran today (UTC). */
 export const builderPlanWelcomeDailyWaitCompact =
@@ -174,7 +173,7 @@ export const builderPlanWelcomeLine =
 
 /** Hero line when logged in but not yet subscribed (pricing + home #pricing). */
 export const pricingHeroLoggedInNoSub =
-  "You're signed in — choose monthly or yearly to start your 3-day trial (card on file). No charge until the trial ends.";
+  "You're signed in — choose monthly or yearly and complete checkout with your card (CAD).";
 
 /** Hero line when user already has trialing or active access. */
 export function pricingHeroSubscriberLine(isTrialing: boolean, trialEndLabel: string | null): string {
@@ -208,14 +207,14 @@ export const pricingFaqs: { q: string; a: string }[] = [
   },
   {
     q: "How do I cancel or change my plan?",
-    a: "Use the Stripe Customer Portal from your account (Manage billing). You keep access through the period you’ve already paid for. Trial billing is explained at checkout.",
+    a: "Use the Stripe Customer Portal from your account (Manage billing). You keep access through the period you’ve already paid for.",
   },
   {
     q: "What’s the difference between Monthly and Yearly?",
-    a: "Same features—unlimited optimizations while your subscription is active after the trial. Monthly bills each month in CAD; Yearly bills once per year at a lower effective monthly rate. Pick the cadence that fits your job search.",
+    a: "Same features—unlimited optimizations while your subscription is active. Monthly bills each month in CAD; Yearly bills once per year at a lower effective monthly rate. Pick the cadence that fits your job search.",
   },
   {
-    q: "How does the 3-day trial work?",
-    a: "You add a card at checkout to start a 3-day trial. While in trial status, you can run one optimization per UTC calendar day. When the trial ends, your paid plan continues unless you cancel in the billing portal before then.",
+    q: "When am I charged?",
+    a: "You add a card in Stripe Checkout. Billing follows your plan (monthly or yearly in CAD) and what Stripe shows before you pay. Manage or cancel anytime in the billing portal.",
   },
 ];

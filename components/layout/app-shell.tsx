@@ -198,7 +198,7 @@ export function AppShell({ children, userEmail, isPro, planSummary }: AppShellPr
 
     return (
       <div className="mx-2 mb-2 rounded-xl border border-border bg-muted/40 px-3 py-3">
-        <p className="text-xs text-muted-foreground mb-2">No plan yet — start a 3-day trial on Plans.</p>
+        <p className="text-xs text-muted-foreground mb-2">No plan yet — subscribe on Plans.</p>
         <Link
           href="/pricing"
           className="block text-center text-xs font-medium rounded-full py-2.5 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"

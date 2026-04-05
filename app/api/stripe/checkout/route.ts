@@ -3,6 +3,7 @@ import type Stripe from "stripe";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
 import { buildSubscriptionLineItems } from "@/lib/stripe/checkoutLineItems";
+import { expandCatalogLineItemsToDropPriceTrial } from "@/lib/stripe/expandCatalogLineItemsToDropPriceTrial";
 import { mapStripeCheckoutApiError } from "@/lib/stripe/priceId";
 import { tryResolveLineItemsFromProduct } from "@/lib/stripe/resolvePriceFromProduct";
 import { extractStripeErrorMessage, getAppOrigin, getStripe } from "@/lib/stripe/server";
@@ -11,8 +12,6 @@ import {
   validateCheckoutLineItemsForStripe,
 } from "@/lib/stripe/validateCheckoutLineItems";
 import { hasPaidPlanAccess } from "@/lib/subscription/access";
-
-const TRIAL_DAYS = 3;
 
 export async function POST(request: Request) {
   try {
@@ -59,7 +58,13 @@ export async function POST(request: Request) {
     if (!lineItemsResult.ok) {
       return NextResponse.json({ error: lineItemsResult.error }, { status: 500 });
     }
-    const { line_items: lineItems, usedInlineFallback } = lineItemsResult;
+    let { line_items: lineItems, usedInlineFallback } = lineItemsResult;
+
+    const trialExpand = await expandCatalogLineItemsToDropPriceTrial(stripe, lineItems);
+    lineItems = trialExpand.lineItems;
+    if (trialExpand.strippedTrialFromCatalogPrice) {
+      usedInlineFallback = true;
+    }
 
     const lineItemsError = validateCheckoutLineItemsForStripe(lineItems);
     if (lineItemsError) {
@@ -67,7 +72,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: lineItemsError }, { status: 500 });
     }
 
-    const pricingMode = usedInlineFallback ? "inline_price_data" : "catalog_price_id";
+    const pricingMode = trialExpand.strippedTrialFromCatalogPrice
+      ? "inline_price_data_stripped_catalog_trial"
+      : usedInlineFallback
+        ? "inline_price_data"
+        : "catalog_price_id";
     console.info(`[stripe/checkout] plan=${plan} mode=${pricingMode} items=${summarizeCheckoutLineItems(lineItems)}`);
 
     const origin = getAppOrigin();
@@ -82,8 +91,9 @@ export async function POST(request: Request) {
       success_url: `${origin}/dashboard?success=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/pricing?checkout=canceled`,
       allow_promotion_codes: true,
+      // No Stripe free trial: first-time usage limits are enforced in-app (free plan / welcome window).
+      // Do not add trial_period_days or trial_end here — customers pay the subscription amount at checkout.
       subscription_data: {
-        trial_period_days: TRIAL_DAYS,
         metadata: { supabase_user_id: user.id },
       },
       metadata: {

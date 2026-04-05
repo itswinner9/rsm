@@ -115,7 +115,7 @@ export default function PricingPage() {
                   <Link href="/auth/signup" className="font-medium text-primary underline-offset-4 hover:underline">
                     Create an account
                   </Link>{" "}
-                  — then pick monthly or yearly for a 3-day trial (card at checkout).
+                  — then pick monthly or yearly (card at checkout, CAD).
                 </motion.p>
               )}
           </div>

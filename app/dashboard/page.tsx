@@ -324,7 +324,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Da
           {!isSubscribed && (
             <div className="rounded-xl border border-border bg-muted/30 px-4 py-3.5 flex flex-col sm:flex-row sm:items-center gap-3">
               <p className="text-sm text-muted-foreground flex-1">
-                Start a 3-day trial with card on the plans page, then unlimited while subscribed.
+                Subscribe on the plans page with your card, then unlimited while subscribed.
               </p>
               <Button asChild size="sm" variant="outline" className="rounded-full shrink-0 h-9 text-xs border-border">
                 <Link href="/pricing">

@@ -15,7 +15,7 @@ Persisted on `user_profiles` (`free_trial_*`, `last_free_use_date`, `total_free_
 
 ## B — Stripe trial (`subscription_status === "trialing"`)
 
-Card on file; 3-day trial from Stripe Checkout (`app/api/stripe/checkout/route.ts`).
+Legacy or other Stripe flows: card on file; **new** Checkout sessions from this app do **not** set `trial_period_days` (see `app/api/stripe/checkout/route.ts`). Existing `trialing` subscriptions still use the rules below.
 
 | Rule | Behavior |
 |------|----------|

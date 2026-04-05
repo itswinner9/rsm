@@ -5,7 +5,7 @@ export type StripeCheckoutContext = {
 };
 
 /**
- * Start Stripe Checkout for monthly or yearly plan (3-day trial, card required).
+ * Start Stripe Checkout for monthly or yearly plan (card required; billing per your Stripe Price).
  * For Payment Links, pass `userId` / `email` so webhooks can tie checkout to Supabase without email-only matching.
  */
 export async function startStripeCheckout(

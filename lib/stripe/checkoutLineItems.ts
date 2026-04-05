@@ -36,7 +36,7 @@ function inlineLineItem(
         recurring: { interval },
         product_data: {
           name,
-          description: "Job-tailored resume optimization — 3-day trial, then billed in CAD.",
+          description: "Job-tailored resume optimization — billed in CAD.",
         },
       },
     },
