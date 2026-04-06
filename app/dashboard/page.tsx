@@ -24,6 +24,7 @@ import type { FreePlanRow } from "@/lib/subscription/freePlan";
 import { parseResumeTemplateId, TEMPLATE_SHORT_LABEL } from "@/lib/resume/types";
 import { presentationMatchScore } from "@/lib/resume/jdKeywordMatchScore";
 import { AtsTrendMini, type AtsTrendPoint } from "@/components/dashboard/AtsTrendMini";
+import { DashboardInsightsStrip } from "@/components/dashboard/dashboard-insights-strip";
 import type { Metadata } from "next";
 import { siteDescription, openGraphDefaults } from "@/lib/site-metadata";
 
@@ -255,6 +256,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Da
                   </div>
                 </div>
               </section>
+
+              <DashboardInsightsStrip generations={generations} />
 
               <AtsTrendMini points={trendPointsChrono} />
             </>
