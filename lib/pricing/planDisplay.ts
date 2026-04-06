@@ -54,6 +54,10 @@ export const homePricingHero = {
 
 export const homePricingHeroProfileLoading = pricingHeroProfileLoading;
 
+/** Homepage — above pricing cards (free welcome vs paid). */
+export const homePricingValueBridge =
+  "New accounts: try without a card—up to three free optimizations in your welcome window (one per UTC day). Subscribe for unlimited runs while active, PDF and DOCX exports, and full history on your dashboard.";
+
 export const tierDefinitions: Record<PricingTierDefinition["id"], PricingTierDefinition> = {
   starter: {
     id: "starter",
@@ -219,3 +223,6 @@ export const pricingFaqs: { q: string; a: string }[] = [
     a: "You pay in Stripe Checkout with your card. After that, billing follows the plan you chose (monthly or yearly in CAD)—exact totals are on the checkout screen before you confirm. Change or cancel anytime in the billing portal.",
   },
 ];
+
+/** First three FAQs — homepage; same objects as `pricingFaqs` (no duplicate copy). */
+export const homePageFaqs = pricingFaqs.slice(0, 3);

@@ -8,6 +8,7 @@ export type SiteNavLink = { label: string; href: string };
 
 export const marketingNavLinks: SiteNavLink[] = [
   { label: "Product", href: "/#features" },
+  { label: "Templates", href: "/#templates" },
   { label: "How it works", href: "/#how-it-works" },
   { label: "Plans", href: "/pricing" },
   { label: "About", href: "/about" },

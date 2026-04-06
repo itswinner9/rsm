@@ -248,64 +248,38 @@ export function HeroSection() {
                     </div>
                 </section>
                 <section className="bg-background pb-16 pt-16 md:pb-32">
-                    <div className="group relative m-auto max-w-5xl px-6">
-                        <p className="text-center text-muted-foreground text-sm mb-10 tracking-wide uppercase text-xs font-medium">
-                            Built for people applying across Canada—and anywhere online
+                    <div className="m-auto max-w-3xl px-6 text-center">
+                        <p className="text-muted-foreground text-xs font-medium uppercase tracking-widest mb-4">
+                            Who it&apos;s for
                         </p>
-                        <div className="absolute inset-0 z-10 flex scale-95 items-center justify-center opacity-0 duration-500 group-hover:scale-100 group-hover:opacity-100">
+                        <p className="text-muted-foreground text-sm leading-relaxed">
+                            People applying across Canada—and anywhere online—for roles in tech, operations, skilled
+                            trades, healthcare, public sector, and more. Company names on job boards aren&apos;t
+                            endorsements of Resumify; we help you align your real experience to the posting you paste.
+                        </p>
+                        <div className="mt-8 flex flex-wrap justify-center gap-2">
+                            {['Tech & product', 'Operations', 'Skilled trades', 'Healthcare', 'Public sector', 'Professional services'].map(
+                                (label) => (
+                                    <span
+                                        key={label}
+                                        className="rounded-full border border-border/80 bg-muted/40 px-3 py-1.5 text-xs font-medium text-muted-foreground"
+                                    >
+                                        {label}
+                                    </span>
+                                )
+                            )}
+                        </div>
+                        <div className="mt-8">
                             <Link
                                 href={trustedHref}
                                 className={cn(
-                                    'block text-sm duration-150 hover:opacity-75',
+                                    'inline-flex items-center text-sm font-medium text-primary hover:underline underline-offset-4',
                                     !ctaReady && isLoggedIn && 'pointer-events-none opacity-50'
                                 )}
                             >
-                                <span>
-                                    {!ctaReady && isLoggedIn ? 'Loading…' : trustedLabel}
-                                </span>
+                                {!ctaReady && isLoggedIn ? 'Loading…' : trustedLabel}
                                 <ChevronRight className="ml-1 inline-block size-3" />
                             </Link>
-                        </div>
-                        <div className="group-hover:blur-xs mx-auto grid max-w-3xl grid-cols-4 gap-x-10 gap-y-10 transition-all duration-500 group-hover:opacity-50 sm:gap-x-14 sm:gap-y-12">
-                            {/* Tech */}
-                            <div className="flex items-center justify-center">
-                                <span className="text-muted-foreground/60 font-bold text-sm tracking-tight">Shopify</span>
-                            </div>
-                            <div className="flex items-center justify-center">
-                                <span className="text-muted-foreground/60 font-bold text-sm tracking-tight">Hootsuite</span>
-                            </div>
-                            <div className="flex items-center justify-center">
-                                <span className="text-muted-foreground/60 font-bold text-sm tracking-tight">Cohere</span>
-                            </div>
-                            <div className="flex items-center justify-center">
-                                <span className="text-muted-foreground/60 font-bold text-sm tracking-tight">Wealthsimple</span>
-                            </div>
-                            {/* Construction */}
-                            <div className="flex items-center justify-center">
-                                <span className="text-muted-foreground/60 font-bold text-sm tracking-tight">PCL</span>
-                            </div>
-                            <div className="flex items-center justify-center">
-                                <span className="text-muted-foreground/60 font-bold text-sm tracking-tight">EllisDon</span>
-                            </div>
-                            <div className="flex items-center justify-center">
-                                <span className="text-muted-foreground/60 font-bold text-sm tracking-tight">Stantec</span>
-                            </div>
-                            <div className="flex items-center justify-center">
-                                <span className="text-muted-foreground/60 font-bold text-sm tracking-tight">WSP</span>
-                            </div>
-                            {/* Mixed */}
-                            <div className="flex items-center justify-center">
-                                <span className="text-muted-foreground/60 font-bold text-sm tracking-tight">AECOM</span>
-                            </div>
-                            <div className="flex items-center justify-center">
-                                <span className="text-muted-foreground/60 font-bold text-sm tracking-tight">SNC-Lavalin</span>
-                            </div>
-                            <div className="flex items-center justify-center">
-                                <span className="text-muted-foreground/60 font-bold text-sm tracking-tight">FreshBooks</span>
-                            </div>
-                            <div className="flex items-center justify-center">
-                                <span className="text-muted-foreground/60 font-bold text-sm tracking-tight">Cenovus</span>
-                            </div>
                         </div>
                     </div>
                 </section>
@@ -324,7 +298,7 @@ const AppMockup = () => (
                 <div className="w-3 h-3 rounded-full bg-green-400/70" />
             </div>
             <div className="flex-1 bg-white border border-gray-200 rounded-full h-6 mx-4 flex items-center px-3">
-                <span className="text-gray-400 text-xs">rsmbuilder.com/builder</span>
+                <span className="text-gray-400 text-xs">resumify.cc/builder</span>
             </div>
         </div>
         {/* App layout */}

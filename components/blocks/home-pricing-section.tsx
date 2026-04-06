@@ -11,6 +11,7 @@ import { startStripeCheckout } from "@/lib/stripe/startCheckout";
 import {
   homePricingHero,
   homePricingHeroProfileLoading,
+  homePricingValueBridge,
   pricingHeroLoggedInNoSub,
   pricingHeroSubscriberLine,
   pricingTierOrder,
@@ -108,6 +109,15 @@ export function HomePricingSection() {
               — then choose monthly or yearly (card at checkout, CAD).
             </motion.p>
           )}
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.14 }}
+            className="text-muted-foreground text-sm max-w-2xl mx-auto mt-6 leading-relaxed border border-border/60 rounded-2xl bg-muted/20 px-5 py-4"
+          >
+            {homePricingValueBridge}
+          </motion.p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-4xl mx-auto">
